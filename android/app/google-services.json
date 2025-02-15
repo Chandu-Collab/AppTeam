@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "652369010478",
+    "project_id": "taurusai-812e1",
+    "storage_bucket": "taurusai-812e1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:652369010478:android:9a6dc534d149e54388a4bf",
+        "android_client_info": {
+          "package_name": "com.mantravat.taurusai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-a7OcRQJV8yY8mD851mI9KBNAPBFIZW4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
