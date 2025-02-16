@@ -35,7 +35,7 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
     email = widget.user.email ?? '';
   }
 
-  Future getImage() async {
+  Future<void> getImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     setState(() {
@@ -79,22 +79,35 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                 onSaved: (value) => name = value!,
               ),
               TextFormField(
-                initialValue: name,
-                decoration: InputDecoration(labelText: 'username'),
-                validator: (value) => value!.isEmpty ? 'username' : null,
+                initialValue: username,
+                decoration: InputDecoration(labelText: 'Username'),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Enter your username';
+                  } else if (RegExp(r'[!@#$%^&*()+\-=\[\]{};:"\\|,.<>\/? ]').hasMatch(value)) {
+                    return 'Username cannot contain special characters or spaces';
+                  } else if (value.length < 4) {
+                    return 'Username must be at least 4 characters';
+                  } else if (value.length > 15) {
+                    return 'Username must be at most 15 characters';
+                  } else if (RegExp(r' ').hasMatch(value)) {
+                    return 'Username cannot contain spaces';
+                  }
+                  return null;
+                },
                 onSaved: (value) => username = value!,
               ),
               SizedBox(height: 20),
               TextFormField(
                 initialValue: email,
                 decoration: InputDecoration(labelText: 'Email'),
-                enabled: false,
+                enabled: true,
               ),
               SizedBox(height: 20),
               TextFormField(
                 initialValue: mobile,
                 decoration: InputDecoration(labelText: 'Mobile'),
-                enabled: false,
+                enabled: true,
               ),
               SizedBox(height: 20),
               TextFormField(
