@@ -36,28 +36,4 @@ class AddressService {
   }
 }
 
-extension AddressExtension on Address {
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'street': street,
-      'city': city,
-      'state': state,
-      'country': country,
-      'postalCode': postalCode,
-      'additionalInfo': additionalInfo,
-    };
-  }
 
-  static Address fromJson(Map<String, dynamic> json) {
-    return Address(
-      id: json['id'] as String,
-      street: json['street'] as String,
-      city: json['city'] as String,
-      state: json['state'] as String,
-      country: json['country'] as String,
-      postalCode: json['postalCode'] as String,
-      additionalInfo: json['additionalInfo'] as String?,
-    );
-  }
-}
