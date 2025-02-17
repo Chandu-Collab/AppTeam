@@ -42,8 +42,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   Future<List<Address>> _fetchAddresses() async {
     String? userId = getCurrentUserId();
+    // print("Fetching addresses for userId: $userId"); // Debugging
+
     if (userId != null) {
-      return await _addressService.getAddresses(userId);
+      return await _addressService.getAddressesForUser(userId);
     }
     return [];
   }
@@ -159,9 +161,119 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               SizedBox(height: 16),
               Row(
                 children: [
+                  Text('Education',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  // Spacer(),
+                  IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => AddressFormScreen()),
+                      ).then((_) {
+                        setState(() {
+                          _addressesFuture = _fetchAddresses();
+                        });
+                      });
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => AddressListPage(
+                                userId: getCurrentUserId() as String)),
+                      ).then((_) {
+                        setState(() {
+                          _addressesFuture = _fetchAddresses();
+                        });
+                      });
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Text('Experience',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  // Spacer(),
+                  IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => AddressFormScreen()),
+                      ).then((_) {
+                        setState(() {
+                          _addressesFuture = _fetchAddresses();
+                        });
+                      });
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => AddressListPage(
+                                userId: getCurrentUserId() as String)),
+                      ).then((_) {
+                        setState(() {
+                          _addressesFuture = _fetchAddresses();
+                        });
+                      });
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Text('Skills', style: Theme.of(context).textTheme.titleLarge),
+                  // Spacer(),
+                  IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => AddressFormScreen()),
+                      ).then((_) {
+                        setState(() {
+                          _addressesFuture = _fetchAddresses();
+                        });
+                      });
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => AddressListPage(
+                                userId: getCurrentUserId() as String)),
+                      ).then((_) {
+                        setState(() {
+                          _addressesFuture = _fetchAddresses();
+                        });
+                      });
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
                   Text('Addresses',
                       style: Theme.of(context).textTheme.titleLarge),
-                  Spacer(),
+                  // Spacer(),
                   IconButton(
                     icon: Icon(Icons.add),
                     onPressed: () {

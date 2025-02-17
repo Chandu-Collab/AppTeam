@@ -48,8 +48,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   Future<void> _loadAddressData() async {
     String? userId = getCurrentUserId();
     if (userId != null && widget.addressId != null) {
-      Address? address =
-          await _addressService.getAddress(userId, widget.addressId!);
+      Address? address = await _addressService.getAddress(widget.addressId!);
       if (address != null) {
         setState(() {
           _streetController.text = address.street;
@@ -86,10 +85,9 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
       try {
         if (_isEditing) {
-          await _addressService.updateAddress(
-              userId, newAddress.id, newAddress);
+          await _addressService.updateAddress(newAddress);
         } else {
-          await _addressService.addAddress(userId, newAddress);
+          await _addressService.createAddress(newAddress);
         }
 
         ScaffoldMessenger.of(context).showSnackBar(

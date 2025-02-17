@@ -9,6 +9,7 @@ class AddressService {
 
   Future<String> createAddress(Address address) async {
     DocumentReference docRef = await _addressesCollection.add(address.toJson());
+    print("address: ${address.toJson()}, addressId generated: ${docRef.id}");
     return docRef.id;
   }
 
@@ -22,6 +23,7 @@ class AddressService {
   Future<List<Address>> getAddressesForUser(String userId) async {
     QuerySnapshot snapshot =
         await _addressesCollection.where('userId', isEqualTo: userId).get();
+    print("userId: ${userId}, addresses: ${snapshot.docs.length}");
     return snapshot.docs
         .map((doc) => Address.fromJson(doc.data() as Map<String, dynamic>))
         .toList();
@@ -35,5 +37,3 @@ class AddressService {
     await _addressesCollection.doc(addressId).delete();
   }
 }
-
-

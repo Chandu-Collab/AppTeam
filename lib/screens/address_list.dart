@@ -20,7 +20,7 @@ class _AddressListPageState extends State<AddressListPage> {
   @override
   void initState() {
     super.initState();
-    _addressesFuture = _addressService.getAddresses(widget.userId);
+    _addressesFuture = _addressService.getAddressesForUser(widget.userId);
   }
 
   Future<void> deleteAddress(String addressId) async {
@@ -45,9 +45,9 @@ class _AddressListPageState extends State<AddressListPage> {
     );
 
     if (confirmed == true) {
-      await _addressService.deleteAddress(widget.userId, addressId);
+      await _addressService.deleteAddress(addressId);
       setState(() {
-        _addressesFuture = _addressService.getAddresses(widget.userId);
+        _addressesFuture = _addressService.getAddressesForUser(widget.userId);
       });
     }
   }
@@ -81,6 +81,7 @@ class _AddressListPageState extends State<AddressListPage> {
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final address = snapshot.data![index];
+                print("address: ${address.toJson()}");
                 return Container(
                   margin: EdgeInsets.only(bottom: 15),
                   decoration: BoxDecoration(
@@ -118,8 +119,8 @@ class _AddressListPageState extends State<AddressListPage> {
                             ),
                           ).then((_) {
                             setState(() {
-                              _addressesFuture =
-                                  _addressService.getAddresses(widget.userId);
+                              _addressesFuture = _addressService
+                                  .getAddressesForUser(widget.userId);
                             });
                           }),
                         ),
