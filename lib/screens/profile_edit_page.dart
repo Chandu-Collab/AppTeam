@@ -1,13 +1,11 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:taurusai/models/address.dart';
 import 'package:taurusai/models/user.dart';
-import 'package:taurusai/screens/add_address_screen.dart';
-import 'package:taurusai/screens/address_list.dart';
-import 'package:taurusai/services/add_address_service.dart';
 import 'package:taurusai/services/user_service.dart';
 import 'package:taurusai/widgets/resume_upload_widget.dart';
+import 'package:country_code_picker/country_code_picker.dart';
 
 class ProfileEditPage extends StatefulWidget {
   final User user;
@@ -19,17 +17,15 @@ class ProfileEditPage extends StatefulWidget {
 }
 
 class _ProfileEditPageState extends State<ProfileEditPage> {
-  final AddressService _addressService = AddressService();
   final UserService _userService = UserService();
   final _formKey = GlobalKey<FormState>();
-
   late TextEditingController _nameController;
   late TextEditingController _bioController;
   late TextEditingController _emailController;
-
+  late TextEditingController _mobileController;
   File? _image;
   final picker = ImagePicker();
-  late Future<List<Address>> _addressesFuture;
+  String countryCode = '+91'; // Default country code
 
   @override
   void initState() {
@@ -37,26 +33,127 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     _nameController = TextEditingController(text: widget.user.profileName);
     _bioController = TextEditingController(text: widget.user.bio);
     _emailController = TextEditingController(text: widget.user.email);
-    _addressesFuture = _fetchAddresses();
+    _mobileController = TextEditingController(text: widget.user.mobile);
   }
 
-  Future<List<Address>> _fetchAddresses() async {
-    String? userId = getCurrentUserId();
-    // print("Fetching addresses for userId: $userId"); // Debugging
-
-    if (userId != null) {
-      return await _addressService.getAddressesForUser(userId);
-    }
-    return [];
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _bioController.dispose();
+    _emailController.dispose();
+    _mobileController.dispose();
+    super.dispose();
   }
 
-  Future<void> _pickImage() async {
+  Future<void> getImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
+
+    setState(() {
+      if (pickedFile != null) {
         _image = File(pickedFile.path);
-      });
-    }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Edit Profile'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed: _saveProfile,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: GestureDetector(
+                  onTap: getImage,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: _image != null
+                        ? FileImage(_image!)
+                        : (widget.user.url != null
+                                ? NetworkImage(widget.user.url!)
+                                : AssetImage('assets/default_profile.png'))
+                            as ImageProvider,
+                    child: _image == null && widget.user.url == null
+                        ? Icon(Icons.camera_alt, size: 50)
+                        : null,
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter your name' : null,
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter your email' : null,
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  CountryCodePicker(
+                    onChanged: (country) {
+                      setState(() {
+                        countryCode = country.dialCode!;
+                      });
+                    },
+                    initialSelection: 'IN',
+                    favorite: ['+91', 'IN'],
+                    showCountryOnly: false,
+                    showOnlyCountryWhenClosed: false,
+                    alignLeft: false,
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _mobileController,
+                      decoration: InputDecoration(labelText: 'Mobile'),
+                      validator: (value) => value!.isEmpty ? 'Enter your Mobile no' : null,
+                      enabled: true,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _bioController,
+                decoration: InputDecoration(labelText: 'Bio'),
+                maxLines: 3,
+              ),
+              SizedBox(height: 16),
+              Text('Resume', style: Theme.of(context).textTheme.titleLarge),
+              SizedBox(height: 8),
+              ResumeUploadWidget(),
+              SizedBox(height: 16),
+              // Add more fields for education, experience, and skills here
+              // For example:
+              Text('Education', style: Theme.of(context).textTheme.titleLarge),
+              // Add education fields
+              Text('Experience', style: Theme.of(context).textTheme.titleLarge),
+              // Add experience fields
+              Text('Skills', style: Theme.of(context).textTheme.titleLarge),
+              // Add skills fields
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _saveProfile() async {
@@ -71,6 +168,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         email: _emailController.text,
         bio: _bioController.text,
         url: imageUrl ?? widget.user.url,
+        mobile: '$countryCode${_mobileController.text}',
       );
       await _userService.updateUser(updatedUser);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -78,276 +176,5 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       );
       Navigator.pop(context);
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.close, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('Edit Profile',
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: GestureDetector(
-                  onTap: _pickImage,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundImage: _image != null
-                        ? FileImage(_image!)
-                        : (widget.user.url != null
-                                ? NetworkImage(widget.user.url!)
-                                : AssetImage('assets/default_profile.png'))
-                            as ImageProvider,
-                    child: _image == null && widget.user.url == null
-                        ? Icon(Icons.camera_alt, size: 50, color: Colors.grey)
-                        : null,
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Full Name',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                validator: (value) => value!.isEmpty ? 'Enter your name' : null,
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email Address',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Enter your email' : null,
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _bioController,
-                decoration: InputDecoration(
-                  labelText: 'Short Bio',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                maxLines: 3,
-              ),
-              SizedBox(height: 24),
-              Text('Resume', style: Theme.of(context).textTheme.titleLarge),
-              SizedBox(height: 8),
-              ResumeUploadWidget(),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Text('Education',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  // Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AddressFormScreen()),
-                      ).then((_) {
-                        setState(() {
-                          _addressesFuture = _fetchAddresses();
-                        });
-                      });
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AddressListPage(
-                                userId: getCurrentUserId() as String)),
-                      ).then((_) {
-                        setState(() {
-                          _addressesFuture = _fetchAddresses();
-                        });
-                      });
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Text('Experience',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  // Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AddressFormScreen()),
-                      ).then((_) {
-                        setState(() {
-                          _addressesFuture = _fetchAddresses();
-                        });
-                      });
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AddressListPage(
-                                userId: getCurrentUserId() as String)),
-                      ).then((_) {
-                        setState(() {
-                          _addressesFuture = _fetchAddresses();
-                        });
-                      });
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Text('Skills', style: Theme.of(context).textTheme.titleLarge),
-                  // Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AddressFormScreen()),
-                      ).then((_) {
-                        setState(() {
-                          _addressesFuture = _fetchAddresses();
-                        });
-                      });
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AddressListPage(
-                                userId: getCurrentUserId() as String)),
-                      ).then((_) {
-                        setState(() {
-                          _addressesFuture = _fetchAddresses();
-                        });
-                      });
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Text('Addresses',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  // Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AddressFormScreen()),
-                      ).then((_) {
-                        setState(() {
-                          _addressesFuture = _fetchAddresses();
-                        });
-                      });
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AddressListPage(
-                                userId: getCurrentUserId() as String)),
-                      ).then((_) {
-                        setState(() {
-                          _addressesFuture = _fetchAddresses();
-                        });
-                      });
-                    },
-                  ),
-                ],
-              ),
-              FutureBuilder<List<Address>>(
-                future: _addressesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Text("No addresses found.");
-                  }
-                  return Column(
-                    children: snapshot.data!
-                        .map((address) => ListTile(
-                              title: Text("${address.street}, ${address.city}",
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text(
-                                  "${address.state}, ${address.country} - ${address.postalCode}"
-                                  "${address.additionalInfo != null ? '\n${address.additionalInfo}' : ''}",
-                                  style: TextStyle(color: Colors.grey[700])),
-                              trailing: Icon(Icons.location_on),
-                            ))
-                        .toList(),
-                  );
-                },
-              ),
-              SizedBox(height: 16),
-              Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    minimumSize: Size(double.infinity, 50),
-                  ),
-                  onPressed: _saveProfile,
-                  child: Text('Save Profile', style: TextStyle(fontSize: 16)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ));
   }
 }
