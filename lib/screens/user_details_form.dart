@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:taurusai/models/user.dart';
 import 'package:taurusai/screens/home_page.dart';
 import 'package:taurusai/services/user_service.dart';
+import 'package:country_code_picker/country_code_picker.dart';
 
 class UserDetailsForm extends StatefulWidget {
   final User user;
@@ -22,8 +23,9 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
   late String username;
   late String mobile;
   late String email;
+  String countryCode = '+91'; // Default country code
   File? _image;
-  final picker = ImagePicker();
+  final ImagePicker picker = ImagePicker();
 
   @override
   void initState() {
@@ -104,10 +106,29 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                 enabled: true,
               ),
               SizedBox(height: 20),
-              TextFormField(
-                initialValue: mobile,
-                decoration: InputDecoration(labelText: 'Mobile'),
-                enabled: true,
+              Row(
+                children: [
+                  CountryCodePicker(
+                    onChanged: (country) {
+                      setState(() {
+                        countryCode = country.dialCode!;
+                      });
+                    },
+                    initialSelection: 'IN',
+                    favorite: ['+91', 'IN'],
+                    showCountryOnly: false,
+                    showOnlyCountryWhenClosed: false,
+                    alignLeft: false,
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: mobile,
+                      decoration: InputDecoration(labelText: 'Mobile'),
+                      validator: (value) => value!.isEmpty ? 'Enter your Mobile no' : null,
+                      onSaved: (value) => mobile = value!,
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 20),
               TextFormField(
@@ -120,29 +141,37 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
               ElevatedButton(
                 child: Text('Save and Continue'),
                 onPressed: () async {
+                  print('Save and Continue button pressed');
                   if (_formKey.currentState!.validate()) {
+                    print('Form is valid');
                     _formKey.currentState!.save();
+                    print('Form saved');
                     String? imageUrl;
                     if (_image != null) {
                       imageUrl = await _userService.uploadProfileImage(
                           widget.user.id, _image!);
+                      print('Image uploaded: $imageUrl');
                     }
                     User updatedUser = widget.user.copyWith(
                       profileName: name,
                       bio: bio,
                       userName: username,
                       url: imageUrl ?? widget.user.url,
-                      mobile: mobile,
+                      mobile: '$countryCode$mobile',
                       email: email,
                       isProfileComplete: true,
                     );
                     await _userService.updateUser(updatedUser);
+                    print('User updated');
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                           builder: (context) => HomePage(
                               user: updatedUser)), // Updated Navigation
                     );
+                    print('Navigation to HomePage');
+                  } else {
+                    print('Form is not valid');
                   }
                 },
               ),
