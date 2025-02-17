@@ -90,7 +90,7 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                     return 'Username must be at least 4 characters';
                   } else if (value.length > 15) {
                     return 'Username must be at most 15 characters';
-                  } else if (RegExp(r' ').hasMatch(value)) {
+                  } else if (RegExp(' ').hasMatch(value)) {
                     return 'Username cannot contain spaces';
                   }
                   return null;
