@@ -5,7 +5,6 @@ import 'package:taurusai/services/topic_service.dart';
 
 class AddTopicScreen extends StatefulWidget {
   final String courseId;
-
   AddTopicScreen({required this.courseId});
 
   @override
@@ -16,20 +15,20 @@ class _AddTopicScreenState extends State<AddTopicScreen>
     with SingleTickerProviderStateMixin {
   final TopicService _topicService = TopicService();
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _instructorController = TextEditingController();
-  final TextEditingController _videoUrlController = TextEditingController();
-  final TextEditingController _topicCountController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _instructorController = TextEditingController();
+  final _videoUrlController = TextEditingController();
+  final _topicCountController = TextEditingController();
   final List<String> _questions = [""];
 
   bool _isDescriptionExpanded = false;
   String? _attachmentPath;
-
   int? _numberOfTopics;
   int _currentTopicIndex = 0;
   List<Topic> _topics = [];
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -37,7 +36,7 @@ class _AddTopicScreenState extends State<AddTopicScreen>
   void initState() {
     super.initState();
     _animationController =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+        AnimationController(vsync: this, duration: Duration(milliseconds: 400));
     _fadeAnimation =
         CurvedAnimation(parent: _animationController, curve: Curves.easeInOut);
   }
@@ -45,16 +44,14 @@ class _AddTopicScreenState extends State<AddTopicScreen>
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
-      setState(() {
-        _attachmentPath = result.files.single.path;
-      });
+      setState(() => _attachmentPath = result.files.single.path);
     }
   }
 
-  void _submitForm() async {
+  void _submitForm() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      Topic newTopic = Topic(
+      _topics.add(Topic(
         id: '',
         name: _nameController.text,
         description: _descriptionController.text,
@@ -63,9 +60,7 @@ class _AddTopicScreenState extends State<AddTopicScreen>
         attachment: _attachmentPath,
         title: _titleController.text,
         question: _questions,
-      );
-
-      _topics.add(newTopic);
+      ));
 
       if (_currentTopicIndex < _numberOfTopics! - 1) {
         setState(() {
@@ -84,14 +79,12 @@ class _AddTopicScreenState extends State<AddTopicScreen>
         String topicId = await _topicService.createTopic(topic);
         await _topicService.addTopicToCourse(widget.courseId, topicId);
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${_topics.length} topics added successfully')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${_topics.length} topics added successfully')));
       Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding topics: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error adding topics: $e')));
     }
   }
 
@@ -103,95 +96,83 @@ class _AddTopicScreenState extends State<AddTopicScreen>
     _videoUrlController.clear();
     _questions.clear();
     _questions.add("");
-    setState(() {
-      _attachmentPath = null;
-    });
+    setState(() => _attachmentPath = null);
   }
 
   void _startTopicCreation() {
-    if (_topicCountController.text.isNotEmpty) {
-      int? numberOfTopics = int.tryParse(_topicCountController.text);
-      if (numberOfTopics != null && numberOfTopics > 0) {
-        setState(() {
-          _numberOfTopics = numberOfTopics;
-          _currentTopicIndex = 0;
-          _topics.clear();
-          _animationController.forward();
-        });
-      }
+    int? numberOfTopics = int.tryParse(_topicCountController.text);
+    if (numberOfTopics != null && numberOfTopics > 0) {
+      setState(() {
+        _numberOfTopics = numberOfTopics;
+        _currentTopicIndex = 0;
+        _topics.clear();
+        _animationController.forward();
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Add Topic'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _topicCountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Enter Number of Topics',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _startTopicCreation,
-              child: Text('Start Adding Topics'),
-            ),
-            SizedBox(height: 20),
-            _numberOfTopics != null
-                ? FadeTransition(
+      appBar:
+          AppBar(title: Text('Add Topic'), backgroundColor: Colors.blueAccent),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _topicCountController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                      labelText: 'Number of Topics',
+                      border: OutlineInputBorder()),
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                    onPressed: _startTopicCreation,
+                    child: Text('Start Adding Topics')),
+                SizedBox(height: 20),
+                if (_numberOfTopics != null)
+                  FadeTransition(
                     opacity: _fadeAnimation,
                     child: Card(
                       elevation: 8,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16),
                         child: Form(
                           key: _formKey,
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               TextFormField(
-                                controller: _nameController,
-                                decoration: InputDecoration(labelText: 'Name'),
-                                validator: (value) => value!.isEmpty ? 'Enter your name' : null,
-                              ),
+                                  controller: _nameController,
+                                  decoration:
+                                      InputDecoration(labelText: 'Name')),
                               TextFormField(
-                                controller: _titleController,
-                                decoration: InputDecoration(labelText: 'Title'),
-                                validator: (value) => value!.isEmpty ? 'Enter your title' : null,
-                              ),
+                                  controller: _titleController,
+                                  decoration:
+                                      InputDecoration(labelText: 'Title')),
                               TextFormField(
-                                controller: _instructorController,
-                                decoration:
-                                    InputDecoration(labelText: 'Instructor'),
-                                    validator: (value) => value!.isEmpty ? 'Enter your Instructor' : null,
-                              ),
+                                  controller: _instructorController,
+                                  decoration:
+                                      InputDecoration(labelText: 'Instructor')),
                               TextFormField(
-                                controller: _videoUrlController,
-                                decoration: InputDecoration(
-                                    labelText: 'Study Video URL'),
-                                    validator: (value) => value!.isEmpty ? 'Enter your Study Video URL' : null,
-                              ),
+                                  controller: _videoUrlController,
+                                  decoration: InputDecoration(
+                                      labelText: 'Study Video URL')),
                               GestureDetector(
                                 onTap: _pickFile,
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.attach_file),
-                                    SizedBox(width: 8),
-                                    Text(_attachmentPath ?? 'Attach a file'),
-                                  ],
-                                ),
+                                child: Row(children: [
+                                  Icon(Icons.attach_file),
+                                  SizedBox(width: 8),
+                                  Text(_attachmentPath ?? 'Attach a file')
+                                ]),
                               ),
                               Row(
                                 mainAxisAlignment:
@@ -217,22 +198,38 @@ class _AddTopicScreenState extends State<AddTopicScreen>
                                       border: OutlineInputBorder()),
                                 ),
                               Column(
-                                children: _questions.map((q) {
-                                  return TextField(
-                                    decoration: InputDecoration(
-                                      labelText: 'Question',
-                                      border: OutlineInputBorder(),
-                                    ),
+                                children:
+                                    List.generate(_questions.length, (index) {
+                                  return Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          decoration: InputDecoration(
+                                            labelText: 'Question',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.add),
+                                        onPressed: () {
+                                          setState(() {
+                                            _questions.add("");
+                                          });
+                                        },
+                                      ),
+                                      if (_questions.length > 1)
+                                        IconButton(
+                                          icon: Icon(Icons.remove),
+                                          onPressed: () {
+                                            setState(() {
+                                              _questions.removeAt(index);
+                                            });
+                                          },
+                                        ),
+                                    ],
                                   );
-                                }).toList(),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.add),
-                                onPressed: () {
-                                  setState(() {
-                                    _questions.add("");
-                                  });
-                                },
+                                }),
                               ),
                               ElevatedButton(
                                 onPressed: _submitForm,
@@ -246,9 +243,10 @@ class _AddTopicScreenState extends State<AddTopicScreen>
                         ),
                       ),
                     ),
-                  )
-                : SizedBox.shrink(),
-          ],
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
