@@ -157,24 +157,31 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   void _saveProfile() async {
-    if (_formKey.currentState!.validate()) {
-      String? imageUrl;
-      if (_image != null) {
-        imageUrl =
-            await _userService.uploadProfileImage(widget.user.id, _image!);
-      }
-      User updatedUser = widget.user.copyWith(
-        profileName: _nameController.text,
-        email: _emailController.text,
-        bio: _bioController.text,
-        url: imageUrl ?? widget.user.url,
-        mobile: '$countryCode${_mobileController.text}',
-      );
-      await _userService.updateUser(updatedUser);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Profile updated successfully')),
-      );
-      Navigator.pop(context);
+  if (_formKey.currentState!.validate()) {
+    String? imageUrl;
+    if (_image != null) {
+      imageUrl = await _userService.uploadProfileImage(widget.user.id, _image!);
     }
+
+    // Check if the mobile number already contains the country code
+    String mobileNumber = _mobileController.text;
+    // if (!mobileNumber.startsWith(countryCode)) {
+    //   mobileNumber = '$countryCode$mobileNumber';
+    // }
+
+    User updatedUser = widget.user.copyWith(
+      profileName: _nameController.text,
+      email: _emailController.text,
+      bio: _bioController.text,
+      url: imageUrl ?? widget.user.url,
+      mobile: mobileNumber,
+    );
+
+    await _userService.updateUser(updatedUser);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Profile updated successfully')),
+    );
+    Navigator.pop(context);
   }
+}
 }
