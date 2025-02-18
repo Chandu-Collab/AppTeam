@@ -170,4 +170,8 @@ class AuthService {
     }
     return null;
   }
+
+  sendOtp(String input) {}
+
+  verifyOtp(String input, String otp) {}
 }
