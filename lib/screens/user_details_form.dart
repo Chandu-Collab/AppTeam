@@ -124,7 +124,14 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                     child: TextFormField(
                       initialValue: mobile,
                       decoration: InputDecoration(labelText: 'Mobile'),
-                      validator: (value) => value!.isEmpty ? 'Enter your Mobile no' : null,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Enter your Mobile no';
+                        } else if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                          return 'Mobile number can only contain digits';
+                        }
+                        return null;
+                      },
                       onSaved: (value) => mobile = value!,
                     ),
                   ),
@@ -175,6 +182,7 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                   }
                 },
               ),
+              
             ],
           ),
         ),
