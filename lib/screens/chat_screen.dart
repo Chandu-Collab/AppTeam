@@ -51,6 +51,10 @@ class _ChatScreenState extends State<ChatScreen> {
       color: Colors.white,
       child: Row(
         children: <Widget>[
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: _showAttachmentOptions,
+          ),
           Expanded(
             child: TextField(
               controller: _messageController,
@@ -66,6 +70,64 @@ class _ChatScreenState extends State<ChatScreen> {
               if (_messageController.text.isNotEmpty) {
                 _sendMessage(_messageController.text);
               }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAttachmentOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Wrap(
+        children: <Widget>[
+          ListTile(
+            leading: Icon(Icons.insert_drive_file),
+            title: Text('Document'),
+            onTap: () {
+              // Handle document selection
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.camera_alt),
+            title: Text('Camera'),
+            onTap: () {
+              // Handle camera selection
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.photo),
+            title: Text('Media'),
+            onTap: () {
+              // Handle media selection
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.gif),
+            title: Text('GIF'),
+            onTap: () {
+              // Handle GIF selection
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.alternate_email),
+            title: Text('Mention'),
+            onTap: () {
+              // Handle mention
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.location_on),
+            title: Text('Location'),
+            onTap: () {
+              // Handle location selection
+              Navigator.pop(context);
             },
           ),
         ],
