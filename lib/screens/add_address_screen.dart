@@ -2,10 +2,24 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:taurusai/models/address.dart';
 import 'package:taurusai/services/add_address_service.dart';
+import 'package:taurusai/widgets/input_widget.dart';
+import 'package:taurusai/widgets/button_widget.dart';
 
 String? getCurrentUserId() {
   final auth.User? user = auth.FirebaseAuth.instance.currentUser;
   return user?.uid;
+  Widget _buildSubmitButton(VoidCallback onPressed, {required String text}) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      child: Text(text),
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
 }
 
 void main() {
@@ -48,7 +62,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   Future<void> _loadAddressData() async {
     String? userId = getCurrentUserId();
     if (userId != null && widget.addressId != null) {
-      Address? address = await _addressService.getAddress(widget.addressId!);
+      Address? address =
+          await _addressService.getAddress(userId, widget.addressId!);
       if (address != null) {
         setState(() {
           _streetController.text = address.street;
@@ -85,9 +100,9 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
       try {
         if (_isEditing) {
-          await _addressService.updateAddress(newAddress);
+          await _addressService.updateAddress(userId, newAddress);
         } else {
-          await _addressService.createAddress(newAddress);
+          await _addressService.createAddress(userId, newAddress);
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -133,44 +148,39 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      _buildTextField(_streetController, "Street Address"),
-                      _buildTextField(_cityController, "City"),
-                      _buildTextField(_stateController, "State"),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: _selectedCountry,
-                              decoration: _inputDecoration("Country"),
-                              items: [
-                                "USA",
-                                "Canada",
-                                "UK",
-                                "Australia",
-                                "India"
-                              ]
-                                  .map((country) => DropdownMenuItem(
-                                      value: country, child: Text(country)))
-                                  .toList(),
-                              onChanged: (value) =>
-                                  setState(() => _selectedCountry = value),
-                              validator: (value) =>
-                                  value == null ? "Select a country" : null,
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: _buildTextField(
-                                _postalCodeController, "Postal Code",
-                                isNumber: true),
-                          ),
-                        ],
-                      ),
-                      _buildTextField(_additionalInfoController,
-                          "Additional Info (Optional)",
-                          maxLines: 3),
+                      buildTextField(
+                          _streetController, "Street Address", Icons.home),
+                      SizedBox(height: 12),
+                      buildTextField(
+                          _cityController, "City", Icons.location_city),
+                      SizedBox(height: 16),
+                      buildTextField(
+                          _stateController, "State", Icons.location_on),
+                      SizedBox(height: 16),
+                      SizedBox(
+                          width: 300,
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedCountry,
+                            decoration: _inputDecoration("Country", Icons.flag),
+                            items: ["USA", "Canada", "UK", "Australia", "India"]
+                                .map((country) => DropdownMenuItem(
+                                      value: country,
+                                      child: Text(country),
+                                    ))
+                                .toList(),
+                            onChanged: (value) =>
+                                setState(() => _selectedCountry = value),
+                            validator: (value) =>
+                                value == null ? "Select a country" : null,
+                          )),
+                      SizedBox(height: 12),
+                      buildTextField(_postalCodeController, "Postal Code",
+                          Icons.location_on),
+                      SizedBox(height: 16),
+                      buildTextField(_additionalInfoController,
+                          "Additional Info (Optional)", Icons.info_outline),
                       SizedBox(height: 20),
-                      _buildSubmitButton(),
+                      buildButton(_saveAddress, text: "Save Address"),
                     ],
                   ),
                 ),
@@ -182,44 +192,12 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      {bool isNumber = false, int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        maxLines: maxLines,
-        decoration: _inputDecoration(label),
-        validator: (value) =>
-            value == null || value.isEmpty ? "$label is required" : null,
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String label) {
+  InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      filled: true,
-      fillColor: Colors.grey[100],
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        minimumSize: Size(double.infinity, 50),
-      ),
-      onPressed: _saveAddress,
-      child: Text("Save Address",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      prefixIcon: Icon(icon),
+      contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
     );
   }
 }
