@@ -11,8 +11,7 @@ class AddTopicScreen extends StatefulWidget {
   _AddTopicScreenState createState() => _AddTopicScreenState();
 }
 
-class _AddTopicScreenState extends State<AddTopicScreen>
-    with SingleTickerProviderStateMixin {
+class _AddTopicScreenState extends State<AddTopicScreen> {
   final TopicService _topicService = TopicService();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -20,26 +19,13 @@ class _AddTopicScreenState extends State<AddTopicScreen>
   final _descriptionController = TextEditingController();
   final _instructorController = TextEditingController();
   final _videoUrlController = TextEditingController();
-  final _topicCountController = TextEditingController();
   final List<String> _questions = [""];
 
   bool _isDescriptionExpanded = false;
   String? _attachmentPath;
-  int? _numberOfTopics;
-  int _currentTopicIndex = 0;
+  bool _moreTopic =
+      false; // Checkbox state to indicate if user wants to add another topic.
   List<Topic> _topics = [];
-
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 400));
-    _fadeAnimation =
-        CurvedAnimation(parent: _animationController, curve: Curves.easeInOut);
-  }
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -50,7 +36,7 @@ class _AddTopicScreenState extends State<AddTopicScreen>
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+      // Add the current topic details to the list.
       _topics.add(Topic(
         id: '',
         name: _nameController.text,
@@ -62,12 +48,18 @@ class _AddTopicScreenState extends State<AddTopicScreen>
         question: _questions,
       ));
 
-      if (_currentTopicIndex < _numberOfTopics! - 1) {
+      if (_moreTopic) {
+        // If the checkbox is ticked, clear the form for the next topic.
+        _clearForm();
+        // Reset the checkbox for the next entry.
         setState(() {
-          _currentTopicIndex++;
-          _clearForm();
+          _moreTopic = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Topic saved. Please add another topic.')),
+        );
       } else {
+        // Otherwise, save all topics to the server.
         _saveAllTopics();
       }
     }
@@ -79,12 +71,14 @@ class _AddTopicScreenState extends State<AddTopicScreen>
         String topicId = await _topicService.createTopic(topic);
         await _topicService.addTopicToCourse(widget.courseId, topicId);
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${_topics.length} topics added successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${_topics.length} topics added successfully')),
+      );
       Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error adding topics: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding topics: $e')),
+      );
     }
   }
 
@@ -99,152 +93,150 @@ class _AddTopicScreenState extends State<AddTopicScreen>
     setState(() => _attachmentPath = null);
   }
 
-  void _startTopicCreation() {
-    int? numberOfTopics = int.tryParse(_topicCountController.text);
-    if (numberOfTopics != null && numberOfTopics > 0) {
-      setState(() {
-        _numberOfTopics = numberOfTopics;
-        _currentTopicIndex = 0;
-        _topics.clear();
-        _animationController.forward();
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(title: Text('Add Topic'), backgroundColor: Colors.blueAccent),
+      appBar: AppBar(
+        title: Text('Add Topic'),
+        backgroundColor: Colors.blueAccent,
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16),
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 400),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _topicCountController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                      labelText: 'Number of Topics',
-                      border: OutlineInputBorder()),
-                ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                    onPressed: _startTopicCreation,
-                    child: Text('Start Adding Topics')),
-                SizedBox(height: 20),
-                if (_numberOfTopics != null)
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Card(
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextFormField(
-                                  controller: _nameController,
-                                  decoration:
-                                      InputDecoration(labelText: 'Name')),
-                              TextFormField(
-                                  controller: _titleController,
-                                  decoration:
-                                      InputDecoration(labelText: 'Title')),
-                              TextFormField(
-                                  controller: _instructorController,
-                                  decoration:
-                                      InputDecoration(labelText: 'Instructor')),
-                              TextFormField(
-                                  controller: _videoUrlController,
-                                  decoration: InputDecoration(
-                                      labelText: 'Study Video URL')),
-                              GestureDetector(
-                                onTap: _pickFile,
-                                child: Row(children: [
-                                  Icon(Icons.attach_file),
-                                  SizedBox(width: 8),
-                                  Text(_attachmentPath ?? 'Attach a file')
-                                ]),
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Description'),
-                                  IconButton(
-                                    icon: Icon(Icons.add),
-                                    onPressed: () {
-                                      setState(() {
-                                        _isDescriptionExpanded =
-                                            !_isDescriptionExpanded;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                              if (_isDescriptionExpanded)
-                                TextFormField(
-                                  controller: _descriptionController,
-                                  maxLines: 3,
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder()),
-                                ),
-                              Column(
-                                children:
-                                    List.generate(_questions.length, (index) {
-                                  return Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextField(
-                                          decoration: InputDecoration(
-                                            labelText: 'Question',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.add),
-                                        onPressed: () {
-                                          setState(() {
-                                            _questions.add("");
-                                          });
-                                        },
-                                      ),
-                                      if (_questions.length > 1)
-                                        IconButton(
-                                          icon: Icon(Icons.remove),
-                                          onPressed: () {
-                                            setState(() {
-                                              _questions.removeAt(index);
-                                            });
-                                          },
-                                        ),
-                                    ],
-                                  );
-                                }),
-                              ),
-                              ElevatedButton(
-                                onPressed: _submitForm,
-                                child: Text(
-                                    _currentTopicIndex < _numberOfTopics! - 1
-                                        ? 'Next Topic'
-                                        : 'Save All Topics'),
-                              ),
-                            ],
-                          ),
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(labelText: 'Name'),
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Please enter a name'
+                            : null,
+                      ),
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: InputDecoration(labelText: 'Title'),
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Please enter a title'
+                            : null,
+                      ),
+                      TextFormField(
+                        controller: _instructorController,
+                        decoration: InputDecoration(labelText: 'Instructor'),
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Please enter an instructor name'
+                            : null,
+                      ),
+                      TextFormField(
+                        controller: _videoUrlController,
+                        decoration:
+                            InputDecoration(labelText: 'Study Video URL'),
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Please enter a video URL'
+                            : null,
+                      ),
+                      SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: _pickFile,
+                        child: Row(
+                          children: [
+                            Icon(Icons.attach_file),
+                            SizedBox(width: 8),
+                            Text(_attachmentPath ?? 'Attach a file'),
+                          ],
                         ),
                       ),
-                    ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Description'),
+                          IconButton(
+                            icon: Icon(Icons.add),
+                            onPressed: () {
+                              setState(() {
+                                _isDescriptionExpanded =
+                                    !_isDescriptionExpanded;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      if (_isDescriptionExpanded)
+                        TextFormField(
+                          controller: _descriptionController,
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            hintText: 'Enter description',
+                          ),
+                        ),
+                      SizedBox(height: 10),
+                      Column(
+                        children: List.generate(_questions.length, (index) {
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  decoration: InputDecoration(
+                                    labelText: 'Question',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  onChanged: (value) {
+                                    _questions[index] = value;
+                                  },
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.add),
+                                onPressed: () {
+                                  setState(() {
+                                    _questions.add("");
+                                  });
+                                },
+                              ),
+                              if (_questions.length > 1)
+                                IconButton(
+                                  icon: Icon(Icons.remove),
+                                  onPressed: () {
+                                    setState(() {
+                                      _questions.removeAt(index);
+                                    });
+                                  },
+                                ),
+                            ],
+                          );
+                        }),
+                      ),
+                      SizedBox(height: 10),
+                      CheckboxListTile(
+                        title: Text('More Topic?'),
+                        value: _moreTopic,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _moreTopic = value ?? false;
+                          });
+                        },
+                      ),
+                      ElevatedButton(
+                        onPressed: _submitForm,
+                        child: Text('Save Topic'),
+                      ),
+                    ],
                   ),
-              ],
+                ),
+              ),
             ),
           ),
         ),
