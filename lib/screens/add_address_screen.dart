@@ -8,18 +8,6 @@ import 'package:taurusai/widgets/button_widget.dart';
 String? getCurrentUserId() {
   final auth.User? user = auth.FirebaseAuth.instance.currentUser;
   return user?.uid;
-  Widget _buildSubmitButton(VoidCallback onPressed, {required String text}) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      child: Text(text),
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
 }
 
 void main() {
