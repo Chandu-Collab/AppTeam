@@ -5,6 +5,7 @@ import 'package:taurusai/models/user.dart';
 import 'package:taurusai/screens/home_page.dart';
 import 'package:taurusai/services/user_service.dart';
 import 'package:country_code_picker/country_code_picker.dart';
+import 'package:flutter/services.dart';
 
 class UserDetailsForm extends StatefulWidget {
   final User user;
@@ -26,6 +27,8 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
   String countryCode = '+91'; // Default country code
   File? _image;
   final ImagePicker picker = ImagePicker();
+  final TextEditingController _mobileController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
 
   @override
   void initState() {
@@ -122,8 +125,12 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                   ),
                   Expanded(
                     child: TextFormField(
-                      initialValue: mobile,
+                      controller: _mobileController,
                       decoration: InputDecoration(labelText: 'Mobile'),
+                        keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
                       validator: (value) {
                         if (value!.isEmpty) {
                           return 'Enter your Mobile no';
@@ -138,12 +145,16 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                 ],
               ),
               SizedBox(height: 20),
-              TextFormField(
-                initialValue: bio,
-                decoration: InputDecoration(labelText: 'Bio'),
-                maxLines: 3,
+                TextFormField(
+                  controller: _bioController,
+                  decoration: InputDecoration(
+                    labelText: 'Bio',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
                 onSaved: (value) => bio = value!,
-              ),
+                  maxLines: 3,
+                ),
               SizedBox(height: 20),
               ElevatedButton(
                 child: Text('Save and Continue'),
@@ -182,7 +193,6 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                   }
                 },
               ),
-              
             ],
           ),
         ),

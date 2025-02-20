@@ -45,7 +45,7 @@ class _AddressListPageState extends State<AddressListPage> {
     );
 
     if (confirmed == true) {
-      await _addressService.deleteAddress(addressId);
+      await _addressService.deleteAddress(widget.userId, addressId);
       setState(() {
         _addressesFuture = _addressService.getAddressesForUser(widget.userId);
       });
