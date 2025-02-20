@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taurusai/models/user.dart' as AppUser;
@@ -7,6 +8,9 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // This variable stores the verificationId received after sending OTP.
+  String? _verificationId;
 
   // Convert Firebase User to App User
   Future<AppUser.User?> _userFromFirebaseUser(User? user) async {
@@ -73,7 +77,7 @@ class AuthService {
       User? user = result.user;
       return await _userFromFirebaseUser(user);
     } catch (e) {
-      print('Error signing in with email and password: $e');
+      print('Error signing up with email and password: $e');
       return null;
     }
   }
@@ -99,12 +103,20 @@ class AuthService {
     }
   }
 
-  // Phone Number Sign In
+  // Phone Number Sign In (auto verification callback)
   Future<void> verifyPhoneNumber(
-      String phoneNumber, Function(String) codeSent) async {
+      String phoneNumber, Function(String) codeSent, {required Null Function(dynamic error) onError}) async {
+    // Ensure the phone number is in E.164 format.
+    if (!phoneNumber.startsWith('+')) {
+      throw Exception(
+          "Phone number must include country code (e.g. '+11234567890').");
+    }
+
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
+      timeout: Duration(seconds: 60),
       verificationCompleted: (PhoneAuthCredential credential) async {
+        // Optionally, you can sign in the user automatically here.
         UserCredential result = await _auth.signInWithCredential(credential);
         User? user = result.user;
         await _userFromFirebaseUser(user);
@@ -113,13 +125,16 @@ class AuthService {
         print('Verification failed: ${e.message}');
       },
       codeSent: (String verificationId, int? resendToken) {
+        _verificationId = verificationId;
         codeSent(verificationId);
       },
-      codeAutoRetrievalTimeout: (String verificationId) {},
-      timeout: Duration(seconds: 60),
+      codeAutoRetrievalTimeout: (String verificationId) {
+        _verificationId = verificationId;
+      },
     );
   }
 
+  // Sign In with OTP (using the stored verificationId)
   Future<AppUser.User?> signInWithOTP(
       String verificationId, String smsCode) async {
     try {
@@ -134,6 +149,48 @@ class AuthService {
       print('Error signing in with OTP: $e');
       return null;
     }
+  }
+
+  // Sends OTP to the given phone number.
+  // The phone number must be provided in international format (E.164), e.g. "+11234567890".
+  Future<String> sendOtp(String phoneNumber) async {
+    // Ensure phone number is in E.164 format.
+    if (!phoneNumber.startsWith('+')) {
+      throw Exception(
+          "Phone number must include country code in E.164 format (e.g., '+11234567890').");
+    }
+    Completer<String> completer = Completer<String>();
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      timeout: Duration(seconds: 60),
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // Optionally, you can sign in the user automatically here.
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        completer.completeError(e);
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        _verificationId = verificationId;
+        completer.complete(verificationId);
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        _verificationId = verificationId;
+      },
+    );
+    return completer.future;
+  }
+
+  // Verifies the OTP using the stored verificationId.
+  Future<AppUser.User?> verifyOtp(String phoneNumber, String otp) async {
+    // Ensure phone number is in E.164 format.
+    if (!phoneNumber.startsWith('+')) {
+      throw Exception(
+          "Phone number must include country code in E.164 format (e.g., '+11234567890').");
+    }
+    if (_verificationId == null) {
+      throw Exception("No verification ID available. Please request an OTP first.");
+    }
+    return await signInWithOTP(_verificationId!, otp);
   }
 
   // Password Reset
@@ -171,7 +228,5 @@ class AuthService {
     return null;
   }
 
-  sendOtp(String input) {}
-
-  verifyOtp(String input, String otp) {}
+  verifyOTP(String verificationId, String otp) {}
 }

@@ -31,13 +31,12 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     // Custom button colors
-    Color signupButtonColor = Colors.grey; // For Sign Up button background
-    Color signupButtonTextColor = Colors.blue; // For Sign Up button text
-    Color googleButtonColor = Colors.grey; // For Sign Up with Google button background
-    Color googleButtonTextColor = Colors.blue; // For Sign Up with Google button text
+    
+    Color signupButtonTextColor = Colors.purple; // For Sign Up button text
+    Color googleButtonTextColor = Colors.purple; // For Sign Up with Google button text
 
     return Scaffold(
-      backgroundColor: Colors.blueGrey[900],
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -52,18 +51,18 @@ class _SignupScreenState extends State<SignupScreen> {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.blue,
                   ),
                 ),
                 const SizedBox(height: 40),
-                // "Get started with Figma!" centered
+                // "Ready to join us, User!" centered
                 const Center(
                   child: Text(
-                    'Get started with Figma!',
+                    'Ready to join us, User!',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -72,10 +71,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 // Subtitle text centered
                 const Center(
                   child: Text(
-                    'Choose a job you love, and you never have to work a day in your life',
+                    'Looking for an amzaing oppurtunity to start your carrer?,We are happy to see you here!,Welcome to our family.',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white70,
+                      color: Colors.black54,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -193,7 +192,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: signupButtonColor,
                       foregroundColor: signupButtonTextColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -220,7 +218,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                   ),
                                 );
-                              },
+                              }, onError: (error) {  },
                             );
                             setState(() => isEmailLoading = false);
                             return;
@@ -265,12 +263,12 @@ class _SignupScreenState extends State<SignupScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text(
                         'OR',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.grey),
                       ),
                     ),
                     const Expanded(
                       child: Divider(
-                        color: Colors.grey,
+                        color: Colors.black,
                         thickness: 1,
                       ),
                     ),
@@ -282,7 +280,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: googleButtonColor,
                       foregroundColor: googleButtonTextColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -321,7 +318,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Text(
                     'By clicking register, you agree to the Terms and Conditions & Privacy Policy of Figma',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.black,
                       fontSize: 12,
                     ),
                     textAlign: TextAlign.center,
@@ -335,7 +332,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     children: [
                       const Text(
                         'Existing User? ',
-                        style: TextStyle(color: Colors.white70),
+                        style: TextStyle(color: Colors.black),
                       ),
                       TextButton(
                         onPressed: () {

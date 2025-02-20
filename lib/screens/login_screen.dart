@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:taurusai/models/user.dart';
 import 'package:taurusai/screens/forgot_password_page.dart';
 import 'package:taurusai/screens/home_page.dart';
 import 'package:taurusai/screens/resume_upload_screen.dart';
 import 'package:taurusai/screens/signup_screen.dart';
 import 'package:taurusai/screens/user_details_form.dart';
+import 'package:taurusai/screens/otp_verification_screen.dart'; 
 import 'package:taurusai/services/auth_service.dart';
 import 'package:taurusai/services/user_service.dart';
 
@@ -20,11 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String input = '';
   String password = '';
-  String otp = '';
   bool isLoading = false;
   bool obscurePassword = true;
   bool isPhoneNumber = false;
-  bool otpSent = false;
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -51,64 +51,56 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Validate if the input is a valid phone number in E.164 format (e.g., +11234567890)
   bool _checkIfPhoneNumber(String value) {
-    return RegExp(r'^\d{10}$').hasMatch(value);
+    return RegExp(r'^\+\d{10,15}$').hasMatch(value.trim());
   }
 
-  Future<void> _sendOtp() async {
-    setState(() {
-      isLoading = true;
-      otpSent = true;
-    });
-
+  // For phone logins, send the OTP and navigate to OTPVerificationScreen.
+  Future<void> _sendOtpAndNavigate() async {
+    setState(() => isLoading = true);
     try {
-      await _auth.sendOtp(input); // Simulate OTP sending
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('OTP sent to $input'),
-          backgroundColor: Colors.green,
+      String verificationId = await _auth.sendOtp(input);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OTPVerificationScreen(
+            verificationId: verificationId,
+            phoneNumber: input,
+            isSignUp: false,
+          ),
         ),
       );
     } catch (e) {
       _showErrorSnackBar('Failed to send OTP: ${e.toString()}');
     }
-
     setState(() => isLoading = false);
   }
 
+  // Handles login for both email and phone logins.
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => isLoading = true);
-
-      try {
-        User? user;
-        if (isPhoneNumber) {
-          // If phone number is detected and OTP is not yet sent, send OTP
-          if (!otpSent) {
-            await _sendOtp();
-            return;
+      if (isPhoneNumber) {
+        await _sendOtpAndNavigate();
+      } else {
+        setState(() => isLoading = true);
+        try {
+          User? user = await _auth.signInWithEmailAndPassword(input, password);
+          if (user != null) {
+            User? fullUser = await _userService.getUserById(user.id);
+            if (fullUser != null) {
+              _navigateToNextScreen(fullUser);
+            } else {
+              _showErrorSnackBar('Error fetching user data. Please try again.');
+            }
           } else {
-            user = await _auth.verifyOtp(input, otp);
+            _showErrorSnackBar('Login failed. Check your credentials and try again.');
           }
-        } else {
-          user = await _auth.signInWithEmailAndPassword(input, password);
+        } catch (e) {
+          _showErrorSnackBar('Error: ${e.toString()}');
         }
-
-        if (user != null) {
-          User? fullUser = await _userService.getUserById(user.id);
-          if (fullUser != null) {
-            _navigateToNextScreen(fullUser);
-          } else {
-            _showErrorSnackBar('Error fetching user data. Please try again.');
-          }
-        } else {
-          _showErrorSnackBar('Login failed. Check your credentials and try again.');
-        }
-      } catch (e) {
-        _showErrorSnackBar('Error: ${e.toString()}');
+        setState(() => isLoading = false);
       }
-
-      setState(() => isLoading = false);
     }
   }
 
@@ -131,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Using SafeArea and SingleChildScrollView for better layout on various devices
+      // SafeArea and SingleChildScrollView ensure a responsive layout.
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(20),
@@ -140,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top left app name
+                // App name
                 Text(
                   'Figma',
                   style: TextStyle(
@@ -152,20 +144,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(height: 30),
                 // Welcome text
                 Text(
-                  'Welcome Back!',
+                  'Welcome Back! User',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 10),
-                // Tagline text
+                // Tagline
                 Text(
-                  'Sign in to your account and continue your job search',
+                  'We are here to help you to find your Dream job!, Join us now',
                   style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                 ),
                 SizedBox(height: 30),
-                // Decorated container for email/phone input
+                // Email or Phone input field
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[200],
@@ -173,15 +165,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: TextFormField(
                     decoration: InputDecoration(
-                      hintText: 'Email or Phone Number',
+                      hintText: 'Email or Phone Number (e.g., +11234567890)',
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.all(16),
                     ),
                     onChanged: (value) {
                       setState(() {
                         input = value;
+                        // Determine if the input is a valid phone number in E.164 format.
                         isPhoneNumber = _checkIfPhoneNumber(value);
-                        otpSent = false; // Reset OTP if input changes
                       });
                     },
                     validator: (value) =>
@@ -189,8 +181,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 SizedBox(height: 20),
-                // Password field (if email) or OTP field (if phone and OTP has been sent)
-                if (!isPhoneNumber || (isPhoneNumber && !otpSent))
+                // Password field for email login only.
+                if (!isPhoneNumber)
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
@@ -220,65 +212,45 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? 'Password must be at least 6 characters'
                           : null,
                     ),
-                  )
-                else if (isPhoneNumber && otpSent)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        hintText: 'Enter OTP',
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.all(16),
-                      ),
-                      onChanged: (value) => setState(() => otp = value),
-                      validator: (value) =>
-                          value!.isEmpty ? 'Enter OTP' : null,
+                  ),
+                // Forgot password link (only for email login)
+                if (!isPhoneNumber)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ForgotPasswordPage()),
+                        );
+                      },
+                      child: Text('Forgot Password?'),
                     ),
                   ),
-                SizedBox(height: 10),
-                // Forgot Password
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ForgotPasswordPage()),
-                      );
-                    },
-                    child: Text('Forgot Password?'),
-                  ),
-                ),
                 SizedBox(height: 20),
-                // Login Button
+                // Login button: for phone login it sends OTP and navigates; for email login, it proceeds normally.
                 ElevatedButton(
-                  onPressed: _handleLogin,
+                  onPressed: isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, 50),
                   ),
-                  child: Text(
-                    isPhoneNumber && !otpSent ? 'Send OTP' : 'Login',
-                  ),
+                  child: Text(isPhoneNumber ? 'Send OTP' : 'Login'),
                 ),
                 SizedBox(height: 20),
                 // OR divider
                 Center(child: Text('OR')),
                 SizedBox(height: 20),
-                // Login with Google Button
+                // Google login button
                 ElevatedButton(
-                  onPressed: _handleGoogleLogin,
+                  onPressed: isLoading ? null : _handleGoogleLogin,
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, 50),
-                    backgroundColor: Colors.red,
                   ),
                   child: Text('Login with Google'),
                 ),
                 SizedBox(height: 30),
-                // Existing User? Sign in text (navigates to signup screen)
+                // Sign up navigation
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -288,8 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => SignupScreen()),
+                            MaterialPageRoute(builder: (context) => SignupScreen()),
                           );
                         },
                         child: Text(
