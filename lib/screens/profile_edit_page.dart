@@ -8,6 +8,8 @@ import 'package:taurusai/screens/address_list.dart';
 import 'package:taurusai/services/add_address_service.dart';
 import 'package:taurusai/services/user_service.dart';
 import 'package:taurusai/widgets/resume_upload_widget.dart';
+import 'package:country_code_picker/country_code_picker.dart';
+import 'package:flutter/services.dart';
 
 class ProfileEditPage extends StatefulWidget {
   final User user;
@@ -25,19 +27,34 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   late TextEditingController _nameController;
   late TextEditingController _bioController;
+  late TextEditingController _usernameController;
   late TextEditingController _emailController;
+  late TextEditingController _mobileController;
 
   File? _image;
   final picker = ImagePicker();
   late Future<List<Address>> _addressesFuture;
+  String countryCode = '+91'; // Define your country code here
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.user.profileName);
-    _bioController = TextEditingController(text: widget.user.bio);
+    _usernameController = TextEditingController(text: widget.user.userName);
     _emailController = TextEditingController(text: widget.user.email);
+    _mobileController = TextEditingController(text: widget.user.mobile);
+    _bioController = TextEditingController(text: widget.user.bio);
     _addressesFuture = _fetchAddresses();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _mobileController.dispose();
+    _bioController.dispose();
+    super.dispose();
   }
 
   Future<List<Address>> _fetchAddresses() async {
@@ -61,21 +78,38 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     if (_formKey.currentState!.validate()) {
       String? imageUrl;
       if (_image != null) {
-        imageUrl =
-            await _userService.uploadProfileImage(widget.user.id, _image!);
+        imageUrl = await _userService.uploadProfileImage(widget.user.id, _image!);
       }
+
+      String mobileNumber = _mobileController.text;
+
       User updatedUser = widget.user.copyWith(
         profileName: _nameController.text,
+        userName: _usernameController.text,
         email: _emailController.text,
+        mobile: mobileNumber,
         bio: _bioController.text,
         url: imageUrl ?? widget.user.url,
       );
+
       await _userService.updateUser(updatedUser);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Profile updated successfully')),
       );
       Navigator.pop(context);
     }
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Enter your email';
+    }
+    String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+    RegExp regex = RegExp(pattern);
+    if (!regex.hasMatch(value)) {
+      return 'Enter a valid email address';
+    }
+    return null;
   }
 
   @override
@@ -91,9 +125,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text('Edit Profile',
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           centerTitle: true,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.save),
+              onPressed: _saveProfile,
+            ),
+          ],
         ),
         body: SingleChildScrollView(
           padding: EdgeInsets.all(16),
@@ -110,9 +149,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       backgroundImage: _image != null
                           ? FileImage(_image!)
                           : (widget.user.url != null
-                                  ? NetworkImage(widget.user.url!)
-                                  : AssetImage('assets/default_profile.png'))
-                              as ImageProvider,
+                              ? NetworkImage(widget.user.url!)
+                              : AssetImage('assets/default_profile.png'))
+                          as ImageProvider,
                       child: _image == null && widget.user.url == null
                           ? Icon(Icons.camera_alt, size: 50, color: Colors.grey)
                           : null,
@@ -130,7 +169,30 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   validator: (value) =>
                       value!.isEmpty ? 'Enter your name' : null,
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 20),
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Enter your username';
+                    } else if (RegExp(r'[!@#$%^&*()+\-=\[\]{};:"\\|,.<>\/? ]').hasMatch(value)) {
+                      return 'Username cannot contain special characters or spaces';
+                    } else if (value.length < 4) {
+                      return 'Username must be at least 4 characters';
+                    } else if (value.length > 15) {
+                      return 'Username must be at most 15 characters';
+                    } else if (RegExp(' ').hasMatch(value)) {
+                      return 'Username cannot contain spaces';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
@@ -139,13 +201,50 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   validator: (value) =>
-                      value!.isEmpty ? 'Enter your email' : null,
+                    value!.isEmpty ? 'Please enter your email' : null,
+                    enabled: false,
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 20),
+                Row(
+                  children: [
+                    CountryCodePicker(
+                      onChanged: (country) {
+                        setState(() {
+                          countryCode = country.dialCode!;
+                        });
+                      },
+                      initialSelection: 'IN',
+                      favorite: ['+91', 'IN'],
+                      showCountryOnly: false,
+                      showOnlyCountryWhenClosed: false,
+                      alignLeft: false,
+                    ),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _mobileController,
+                        decoration: InputDecoration(labelText: 'Mobile'),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Enter your Mobile no';
+                          } else if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                            return 'Mobile number can only contain digits';
+                          }
+                          return null;
+                        },
+                        enabled: true,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
                 TextFormField(
                   controller: _bioController,
                   decoration: InputDecoration(
-                    labelText: 'Short Bio',
+                    labelText: 'Bio',
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
@@ -153,9 +252,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 ),
                 SizedBox(height: 24),
                 Text('Resume', style: Theme.of(context).textTheme.titleLarge),
-                SizedBox(height: 8),
+                SizedBox(height: 24),
+                Text('Experience', style: Theme.of(context).textTheme.titleLarge),
+                SizedBox(height: 24),
+                Text('Education', style: Theme.of(context).textTheme.titleLarge),
+                SizedBox(height: 24),
                 ResumeUploadWidget(),
-                SizedBox(height: 16),
+                SizedBox(height: 24),
                 FutureBuilder<List<Address>>(
                   future: _addressesFuture,
                   builder: (context, snapshot) {
