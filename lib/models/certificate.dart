@@ -6,6 +6,7 @@ class Certificate {
   final DateTime? expirationDate;
   final String? credentialId;
   final String? credentialUrl;
+  final String userId; // Add userId field
 
   Certificate({
     required this.id,
@@ -15,6 +16,7 @@ class Certificate {
     this.expirationDate,
     this.credentialId,
     this.credentialUrl,
+    required this.userId, // Add userId to constructor
   });
 
   factory Certificate.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class Certificate {
           : null,
       credentialId: json['credentialId'],
       credentialUrl: json['credentialUrl'],
+      userId: json['userId'], // Add userId to fromJson
     );
   }
 
@@ -40,6 +43,7 @@ class Certificate {
       'expirationDate': expirationDate?.toIso8601String(),
       'credentialId': credentialId,
       'credentialUrl': credentialUrl,
+      'userId': userId, // Add userId to toJson
     };
   }
 }

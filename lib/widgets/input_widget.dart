@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 Widget buildTextField(
-    TextEditingController controller, String label, IconData icon,
-    {int maxLines = 1, bool isNumeric = false, bool isPassword = false}) {
+    String label,TextEditingController controller,
+    String? Function(String?)? validator,
+    void Function(String?) onSaved,
+    {IconData? icon, int maxLines = 1, 
+    bool isNumeric = false, bool isPassword = false,})
+     {
   return SizedBox(
     width: 300,
     child: TextFormField(
@@ -16,7 +20,8 @@ Widget buildTextField(
       ),
       maxLines: maxLines,
       obscureText: isPassword,
-      validator: (value) => value!.isEmpty ? "$label is required" : null,
+      validator: validator,
+      onSaved: onSaved,
     ),
   );
 }

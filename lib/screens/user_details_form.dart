@@ -6,6 +6,7 @@ import 'package:taurusai/screens/home_page.dart';
 import 'package:taurusai/services/user_service.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:taurusai/widgets/input_widget.dart';
 
 class UserDetailsForm extends StatefulWidget {
   final User user;
@@ -27,9 +28,11 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
   String countryCode = '+91'; // Default country code
   File? _image;
   final ImagePicker picker = ImagePicker();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
-
+  final TextEditingController _usernameController = TextEditingController();
+    final TextEditingController _emailController = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -83,25 +86,22 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                 validator: (value) => value!.isEmpty ? 'Enter your name' : null,
                 onSaved: (value) => name = value!,
               ),
-              TextFormField(
-                initialValue: username,
-                decoration: InputDecoration(labelText: 'Username'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Enter your username';
-                  } else if (RegExp(r'[!@#$%^&*()+\-=\[\]{};:"\\|,.<>\/? ]').hasMatch(value)) {
-                    return 'Username cannot contain special characters or spaces';
-                  } else if (value.length < 4) {
-                    return 'Username must be at least 4 characters';
-                  } else if (value.length > 15) {
-                    return 'Username must be at most 15 characters';
-                  } else if (RegExp(' ').hasMatch(value)) {
-                    return 'Username cannot contain spaces';
-                  }
-                  return null;
-                },
-                onSaved: (value) => username = value!,
-              ),
+              buildTextField("name", _usernameController, (value) {}, (value) => name = value!),
+              SizedBox(height: 20),
+               buildTextField("Username", _usernameController, (value) {
+                 if (value!.isEmpty) {
+                   return 'Enter your username';
+                 } else if (RegExp(r'[!@#$%^&*()+\-=\[\]{};:"\\|,.<>\/? ]').hasMatch(value)) {
+                   return 'Username cannot contain special characters or spaces';
+                 } else if (value.length < 4) {
+                   return 'Username must be at least 4 characters';
+                 } else if (value.length > 15) {
+                   return 'Username must be at most 15 characters';
+                 } else if (RegExp(' ').hasMatch(value)) {
+                   return 'Username cannot contain spaces';
+                 }
+                 return null;
+               }, (value) => username = value!),
               SizedBox(height: 20),
               TextFormField(
                 initialValue: email,

@@ -55,7 +55,7 @@ class _CoursesPageState extends State<CoursesPage> {
             price: 99.99,
             url: 'https://example.com/flutter-course',
             status: 'Open',
-            createrId: widget.user.id,
+            createrId: widget.user.id, userId: '',
           ),
           // Add more test courses here
         ];

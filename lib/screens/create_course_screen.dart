@@ -91,7 +91,7 @@ List<String> skill = [];
                       status: selectedStatus,
                       startDate: startDate,
                       endDate: endDate,
-                      createrId: widget.user.id,
+                      createrId: widget.user.id, userId: '',
                     );
                     try {
                       String courseId =
@@ -131,7 +131,7 @@ List<String> skill = [];
                   _sectionTitle("Course Details"),
                   _buildGrid([
                     
-                    buildTextField(titleController, "Title", Icons.title),
+                    buildTextField( "Title", titleController,(value) {}, (value) => title, icon: Icons.title),
                     isMobile
                         ? SizedBox(
                             width: 300, // Adjust width dynamically if needed
@@ -177,16 +177,21 @@ List<String> skill = [];
                         selectedCategory = value!;
                       });
                     }),
-                    buildTextField(skillsController, "Skills", Icons.star),
+                    // buildTextField(skillsController, "Skills", Icons.star),
+                   buildTextField("Skills", skillsController, (value) {}, (value) => skill = value!.split(',').map((s) => s.trim()).toList(),icon: Icons.star,),
+                    //
+              SizedBox(height: 20),
                     // _buildTextField(instructorUrlController, "Instructor URL",
                     //     Icons.person),
                   ]),
                   SizedBox(height: 15),
                   _sectionTitle("Additional Details"),
                   _buildGrid([
-                   buildTextField(topicsController, "Topics", Icons.topic),
-                    buildTextField(
-                        durationController, "Duration (hours)", Icons.timer),
+                   buildTextField("Skills", topicsController, (value) {}, (value) => skill, icon: Icons.topic,),               
+                  //  buildTextField(topicsController, "Topics", Icons.topic),
+                    // buildTextField(
+                    //     durationController, "Duration (hours)", Icons.timer),
+                   buildTextField("Skills", durationController, (value) {}, (value) => skill, icon: Icons.timer,),                         
                     _buildDropdown("Level", levels, selectedLevel, (value) {
                       setState(() {
                         selectedLevel = value!;
@@ -197,10 +202,10 @@ List<String> skill = [];
                   _sectionTitle("Pricing & Availability"),
                   _buildGrid([
                     buildTextField(
-                        priceController, "Price", Icons.attach_money,
+                         "Price",priceController, (value) {}, (value) => price, icon: Icons.attach_money,
                         isNumeric: true),
                     buildTextField(
-                        courseUrlController, "Course URL", Icons.link),
+                         "Course URL", courseUrlController, (value) {}, (value) => instructorUrl, icon:  Icons.link),
                   ]),
                   SizedBox(height: 15),
                   _buildGrid([

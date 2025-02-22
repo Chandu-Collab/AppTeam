@@ -27,6 +27,12 @@ class AddressFormScreen extends StatefulWidget {
 
 class _AddressFormScreenState extends State<AddressFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  String street = '';
+  String city = ''; // Add city field
+  String state = ''; // Add state field     
+  String country = ''; // Add country field
+  String postalCode = ''; // Add postalCode field
+  String additionalInfo = ''; // Add additionalInfo field
   final AddressService _addressService = AddressService();
 
   final TextEditingController _streetController = TextEditingController();
@@ -38,7 +44,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
   String? _selectedCountry;
   bool _isEditing = false;
-
   @override
   void initState() {
     super.initState();
@@ -84,6 +89,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         country: _selectedCountry!,
         postalCode: _postalCodeController.text,
         additionalInfo: _additionalInfoController.text,
+        userId: userId, // Add userId here
       );
 
       try {
@@ -137,36 +143,61 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                   child: Column(
                     children: [
                       buildTextField(
-                          _streetController, "Street Address", Icons.home),
+                        "Street Address",
+                        _streetController,
+                        (value) => value!.isEmpty ? "Street Address is required" : null,                  
+                        (value) => street = value!,
+                      ),
                       SizedBox(height: 12),
                       buildTextField(
-                          _cityController, "City", Icons.location_city),
+                        "City",
+                         _cityController,
+                        (value) => value!.isEmpty ? "City is required" : null,
+                        (value) => city = value!,
+                        icon: Icons.location_city,
+                      ),
                       SizedBox(height: 16),
                       buildTextField(
-                          _stateController, "State", Icons.location_on),
+                        "State",
+                         _stateController,
+                        (value) => value!.isEmpty ? "State is required" : null,
+                        (value) => state = value!,
+                                                icon: Icons.location_on,
+                      ),
                       SizedBox(height: 16),
                       SizedBox(
-                          width: 300,
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedCountry,
-                            decoration: _inputDecoration("Country", Icons.flag),
-                            items: ["USA", "Canada", "UK", "Australia", "India"]
-                                .map((country) => DropdownMenuItem(
-                                      value: country,
-                                      child: Text(country),
-                                    ))
-                                .toList(),
-                            onChanged: (value) =>
-                                setState(() => _selectedCountry = value),
-                            validator: (value) =>
-                                value == null ? "Select a country" : null,
-                          )),
+                        width: 300,
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedCountry,
+                          decoration: _inputDecoration("Country", Icons.flag),
+                          items: ["USA", "Canada", "UK", "Australia", "India"]
+                              .map((country) => DropdownMenuItem(
+                                    value: country,
+                                    child: Text(country),
+                                  ))
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => _selectedCountry = value),
+                          validator: (value) =>
+                              value == null ? "Select a country" : null,
+                        ),
+                      ),
                       SizedBox(height: 12),
-                      buildTextField(_postalCodeController, "Postal Code",
-                          Icons.location_on),
+                      buildTextField(
+                        "Postal Code",
+                        _postalCodeController,
+                        (value) => value!.isEmpty ? "Postal Code is required" : null,
+                        (value) => postalCode = value!,
+                        icon: Icons.location_on,
+                      ),
                       SizedBox(height: 16),
-                      buildTextField(_additionalInfoController,
-                          "Additional Info (Optional)", Icons.info_outline),
+                      buildTextField(
+                        "Additional Info (Optional)",
+                        _additionalInfoController,
+                        (value) => null,
+                        (value) => additionalInfo = value!,
+                                                icon: Icons.info_outline,
+                      ),
                       SizedBox(height: 20),
                       buildButton(_saveAddress, text: "Save Address"),
                     ],

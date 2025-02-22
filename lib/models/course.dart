@@ -16,6 +16,7 @@ class Course {
   final DateTime? endDate;
   final String status;
   final String? createrId;
+  final String userId; // Add userId field
 
   Course({
     required this.id,
@@ -33,6 +34,7 @@ class Course {
     this.endDate,
     required this.status,
     required this.createrId,
+    required this.userId, // Add userId to constructor
   });
 
   factory Course.fromJson(Map<String, dynamic> json) {
@@ -48,11 +50,11 @@ class Course {
       level: json['level'],
       price: json['price'],
       url: json['url'],
-      startDate:
-          json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
+      startDate: json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
       endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
       status: json['status'],
       createrId: json['createrId'],
+      userId: json['userId'], // Add userId to fromJson
     );
   }
 
@@ -73,6 +75,7 @@ class Course {
       'endDate': endDate?.toIso8601String(),
       'status': status,
       'createrId': createrId,
+      'userId': userId, // Add userId to toJson
     };
   }
 }

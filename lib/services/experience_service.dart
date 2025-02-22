@@ -1,62 +1,61 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:taurusai/models/experience.dart';
 
 class ExperienceService {
-  final String baseUrl;
+  /// Returns the reference to the experiences collection for a specific user
+  CollectionReference _experiencesCollection(String userId) =>
+      FirebaseFirestore.instance
+          .collection('taurusai')
+          .doc(userId)
+          .collection('experiences');
 
-  ExperienceService({required this.baseUrl});
-
-  Future<List<Experience>> getExperiences() async {
-    final response = await http.get(Uri.parse('$baseUrl/experiences'));
-
-    if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
-      return body.map((dynamic item) => Experience.fromJson(item)).toList();
-    } else {
-      throw Exception('Failed to load experiences');
-    }
+  /// Create a new experience for a specific user
+  Future<String> createExperience(String userId, Experience experience) async {
+    DocumentReference docRef =
+        _experiencesCollection(userId).doc(); // Generate a new document reference
+    experience.id = docRef.id; // Assign the generated ID to the experience
+    await docRef.set(experience
+        .toJson()); // Use set() instead of add() to ensure the ID is stored
+    print('Experience created with ID: ${docRef.id}');
+    return docRef.id;
   }
 
-  Future<Experience> getExperienceById(String id) async {
-    final response = await http.get(Uri.parse('$baseUrl/experiences/$id'));
-
-    if (response.statusCode == 200) {
-      return Experience.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load experience');
-    }
+  /// Retrieve a single experience by ID for a specific user
+  Future<Experience?> getExperience(String userId, String experienceId) async {
+    DocumentSnapshot doc =
+        await _experiencesCollection(userId).doc(experienceId).get();
+    return doc.exists
+        ? Experience.fromJson(doc.data() as Map<String, dynamic>)
+        : null;
   }
 
-  Future<void> createExperience(Experience experience) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/experiences'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(experience.toJson()),
-    );
-
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create experience');
-    }
+  /// Retrieve all experiences for a specific user
+  Future<List<Experience>> getExperiencesForUser(String userId) async {
+    QuerySnapshot snapshot = await _experiencesCollection(userId).get();
+    print("Total experiences: ${snapshot.docs.length}");
+    return snapshot.docs
+        .map((doc) => Experience.fromJson(doc.data() as Map<String, dynamic>))
+        .toList();
   }
 
-  Future<void> updateExperience(String id, Experience experience) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/experiences/$id'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(experience.toJson()),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update experience');
-    }
+  /// Update an existing experience for a specific user
+  Future<void> updateExperience(String userId, Experience experience) async {
+    await _experiencesCollection(userId).doc(experience.id).update(experience.toJson());
   }
 
-  Future<void> deleteExperience(String id) async {
-    final response = await http.delete(Uri.parse('$baseUrl/experiences/$id'));
+  /// Delete an experience by ID for a specific user
+  Future<void> deleteExperience(String userId, String experienceId) async {
+    await _experiencesCollection(userId).doc(experienceId).delete();
+  }
 
-    if (response.statusCode != 204) {
-      throw Exception('Failed to delete experience');
+  // Delete all experiences for a specific user
+  Future<void> deleteAllExperiences(String userId) async {
+    QuerySnapshot snapshot = await _experiencesCollection(userId).get();
+
+    for (DocumentSnapshot doc in snapshot.docs) {
+      await doc.reference.delete();
     }
+
+    print("All experiences deleted for user: $userId");
   }
 }

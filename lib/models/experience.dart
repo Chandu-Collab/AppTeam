@@ -8,8 +8,11 @@ class Experience {
   final String? description;
   final String jobTitle;
   final List<String> skill;
+  final String userId;
 
-  Experience({
+  String? id; // Make id nullable
+
+  Experience(this.userId, {
     required this.title,
     required this.company,
     this.location,
@@ -19,10 +22,12 @@ class Experience {
     this.description,
     required this.jobTitle,
     required this.skill,
+    this.id, // Add id to the constructor
   });
 
   factory Experience.fromJson(Map<String, dynamic> json) {
     return Experience(
+      json['userId'], // Add userId to fromJson
       title: json['title'],
       company: json['company'],
       location: json['location'],
@@ -32,6 +37,7 @@ class Experience {
       description: json['description'],
       jobTitle: json['jobTitle'],
       skill: List<String>.from(json['skill']),
+      id: json['id'], // Add id to fromJson
     );
   }
 
@@ -46,6 +52,8 @@ class Experience {
       'description': description,
       'jobTitle': jobTitle,
       'skill': skill,
+      'userId': userId, // Add userId to toJson
+      'id': id, // Add id to toJson
     };
   }
 }
