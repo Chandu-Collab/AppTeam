@@ -31,6 +31,34 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   final picker = ImagePicker();
   late Future<List<Address>> _addressesFuture;
 
+  // Dummy data for Experiences, Education, and Skills.
+  List<Map<String, String>> _experiences = [
+    {
+      'title': 'Software Engineer',
+      'company': 'Google Inc.',
+      'duration': 'Jan 2018 - Present',
+    },
+    {
+      'title': 'Mobile Developer',
+      'company': 'Facebook',
+      'duration': 'Feb 2016 - Dec 2017',
+    },
+  ];
+
+  List<Map<String, String>> _education = [
+    {
+      'degree': 'B.Sc. Computer Science',
+      'institution': 'Stanford University',
+      'year': '2012 - 2016',
+    },
+  ];
+
+  List<String> _skills = [
+    'Flutter',
+    'Dart',
+    'JavaScript',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -78,6 +106,20 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     }
   }
 
+  // Example functions for adding new experiences, education, or skills.
+  // You can replace these with your own navigation or dialog logic.
+  void _addExperience() {
+    // For example, open a dialog to collect experience details.
+  }
+
+  void _addEducation() {
+    // For example, open a dialog to collect education details.
+  }
+
+  void _addSkill() {
+    // For example, open a dialog to collect a new skill.
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -102,6 +144,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Profile Image
                 Center(
                   child: GestureDetector(
                     onTap: _pickImage,
@@ -120,6 +163,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   ),
                 ),
                 SizedBox(height: 20),
+                // Name Field
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
@@ -131,6 +175,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       value!.isEmpty ? 'Enter your name' : null,
                 ),
                 SizedBox(height: 16),
+                // Email Field
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
@@ -142,6 +187,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       value!.isEmpty ? 'Enter your email' : null,
                 ),
                 SizedBox(height: 16),
+                // Bio Field
                 TextFormField(
                   controller: _bioController,
                   decoration: InputDecoration(
@@ -152,7 +198,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   maxLines: 3,
                 ),
                 SizedBox(height: 24),
-                SizedBox(height: 16),
+                // Addresses Section (using FutureBuilder)
                 FutureBuilder<List<Address>>(
                   future: _addressesFuture,
                   builder: (context, snapshot) {
@@ -233,130 +279,170 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                     ))
                                 .toList(),
                           ),
-                        Row(
-                          children: [
-                            Text('Experiences',
-                                style: Theme.of(context).textTheme.titleLarge),
-                            IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          AddressFormScreen()),
-                                ).then((_) {
-                                  setState(() {
-                                    _addressesFuture = _fetchAddresses();
-                                  });
-                                });
-                              },
-                            ),
-                            if (hasAddresses)
-                              IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => AddressListPage(
-                                            userId:
-                                                getCurrentUserId() as String)),
-                                  ).then((_) {
-                                    setState(() {
-                                      _addressesFuture = _fetchAddresses();
-                                    });
-                                  });
-                                },
-                              ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text('Education',
-                                style: Theme.of(context).textTheme.titleLarge),
-                            IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          AddressFormScreen()),
-                                ).then((_) {
-                                  setState(() {
-                                    _addressesFuture = _fetchAddresses();
-                                  });
-                                });
-                              },
-                            ),
-                            if (hasAddresses)
-                              IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => AddressListPage(
-                                            userId:
-                                                getCurrentUserId() as String)),
-                                  ).then((_) {
-                                    setState(() {
-                                      _addressesFuture = _fetchAddresses();
-                                    });
-                                  });
-                                },
-                              ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text('Skills',
-                                style: Theme.of(context).textTheme.titleLarge),
-                            IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          AddressFormScreen()),
-                                ).then((_) {
-                                  setState(() {
-                                    _addressesFuture = _fetchAddresses();
-                                  });
-                                });
-                              },
-                            ),
-                            if (hasAddresses)
-                              IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => AddressListPage(
-                                            userId:
-                                                getCurrentUserId() as String)),
-                                  ).then((_) {
-                                    setState(() {
-                                      _addressesFuture = _fetchAddresses();
-                                    });
-                                  });
-                                },
-                              ),
-                          ],
-                        ),
                       ],
                     );
                   },
                 ),
+                SizedBox(height: 24),
+                // Experiences Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Experiences',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    IconButton(
+                      icon: Icon(Icons.add),
+                      onPressed: _addExperience,
+                    ),
+                  ],
+                ),
+                _experiences.isEmpty
+                    ? Text("No experiences added.")
+                    : Column(
+                        children: _experiences.map((exp) {
+                          return BuildCard(
+                            title: exp['title']!,
+                            subtitle: exp['company']!,
+                            description: exp['duration']!,
+                            trailing: IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                // Handle edit experience
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                SizedBox(height: 24),
+                // Education Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Education',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    IconButton(
+                      icon: Icon(Icons.add),
+                      onPressed: _addEducation,
+                    ),
+                  ],
+                ),
+                _education.isEmpty
+                    ? Text("No education added.")
+                    : Column(
+                        children: _education.map((edu) {
+                          return BuildCard(
+                            title: edu['degree']!,
+                            subtitle: edu['institution']!,
+                            description: edu['year']!,
+                            trailing: IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                // Handle edit education
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                SizedBox(height: 24),
+                // Skills Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Skills',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    IconButton(
+                      icon: Icon(Icons.add),
+                      onPressed: _addSkill,
+                    ),
+                  ],
+                ),
+                _skills.isEmpty
+                    ? Text("No skills added.")
+                    : Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _skills
+                            .map((skill) => Chip(
+                                  label: Text(skill),
+                                  backgroundColor: Colors.grey[200],
+                                ))
+                            .toList(),
+                      ),
+                SizedBox(height: 24),
+                // Resume Upload Section
                 Text('Resume', style: Theme.of(context).textTheme.titleLarge),
                 SizedBox(height: 8),
                 ResumeUploadWidget(),
+                SizedBox(height: 24),
+                // Save Button
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _saveProfile,
+                    child: Text('Save Profile'),
+                  ),
+                ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A reusable card widget to display experience, education, or similar profile items.
+/// This is designed to mimic a LinkedIn-style experience card.
+class BuildCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String? description;
+  final Widget? trailing;
+
+  const BuildCard({
+    Key? key,
+    required this.title,
+    required this.subtitle,
+    this.description,
+    this.trailing,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      margin: EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title and trailing action (e.g., edit)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                if (trailing != null) trailing!,
+              ],
+            ),
+            SizedBox(height: 4),
+            // Subtitle (e.g., company or institution)
+            Text(
+              subtitle,
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            ),
+            // Optional description (e.g., duration or additional info)
+            if (description != null) ...[
+              SizedBox(height: 8),
+              Text(
+                description!,
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ],
         ),
       ),
     );
