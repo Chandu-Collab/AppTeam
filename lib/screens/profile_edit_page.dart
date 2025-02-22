@@ -152,9 +152,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   maxLines: 3,
                 ),
                 SizedBox(height: 24),
-                Text('Resume', style: Theme.of(context).textTheme.titleLarge),
-                SizedBox(height: 8),
-                ResumeUploadWidget(),
                 SizedBox(height: 16),
                 FutureBuilder<List<Address>>(
                   future: _addressesFuture,
@@ -236,10 +233,127 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                     ))
                                 .toList(),
                           ),
+                        Row(
+                          children: [
+                            Text('Experiences',
+                                style: Theme.of(context).textTheme.titleLarge),
+                            IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          AddressFormScreen()),
+                                ).then((_) {
+                                  setState(() {
+                                    _addressesFuture = _fetchAddresses();
+                                  });
+                                });
+                              },
+                            ),
+                            if (hasAddresses)
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => AddressListPage(
+                                            userId:
+                                                getCurrentUserId() as String)),
+                                  ).then((_) {
+                                    setState(() {
+                                      _addressesFuture = _fetchAddresses();
+                                    });
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text('Education',
+                                style: Theme.of(context).textTheme.titleLarge),
+                            IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          AddressFormScreen()),
+                                ).then((_) {
+                                  setState(() {
+                                    _addressesFuture = _fetchAddresses();
+                                  });
+                                });
+                              },
+                            ),
+                            if (hasAddresses)
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => AddressListPage(
+                                            userId:
+                                                getCurrentUserId() as String)),
+                                  ).then((_) {
+                                    setState(() {
+                                      _addressesFuture = _fetchAddresses();
+                                    });
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text('Skills',
+                                style: Theme.of(context).textTheme.titleLarge),
+                            IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          AddressFormScreen()),
+                                ).then((_) {
+                                  setState(() {
+                                    _addressesFuture = _fetchAddresses();
+                                  });
+                                });
+                              },
+                            ),
+                            if (hasAddresses)
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => AddressListPage(
+                                            userId:
+                                                getCurrentUserId() as String)),
+                                  ).then((_) {
+                                    setState(() {
+                                      _addressesFuture = _fetchAddresses();
+                                    });
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
                       ],
                     );
                   },
                 ),
+                Text('Resume', style: Theme.of(context).textTheme.titleLarge),
+                SizedBox(height: 8),
+                ResumeUploadWidget(),
               ],
             ),
           ),
