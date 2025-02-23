@@ -13,8 +13,6 @@ class createCoursePage extends StatefulWidget {
   _createCoursePageState createState() => _createCoursePageState();
 }
 
- 
-
 class _createCoursePageState extends State<createCoursePage> {
   final _formKey = GlobalKey<FormState>();
    String title = '';
@@ -23,7 +21,7 @@ class _createCoursePageState extends State<createCoursePage> {
   String duration = '';
   String level = '';
   List<String> category=[];
-List<String> skill = [];
+  List<String> skill = [];
   String instructorUrl = '';
   double price=0;
   String url = '';
@@ -180,7 +178,7 @@ List<String> skill = [];
                     // buildTextField(skillsController, "Skills", Icons.star),
                    buildTextField("Skills", skillsController, (value) {}, (value) => skill = value!.split(',').map((s) => s.trim()).toList(),icon: Icons.star,),
                     //
-              SizedBox(height: 20),
+                    SizedBox(height: 20),
                     // _buildTextField(instructorUrlController, "Instructor URL",
                     //     Icons.person),
                   ]),
