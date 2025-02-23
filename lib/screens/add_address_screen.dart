@@ -4,6 +4,7 @@ import 'package:taurusai/models/address.dart';
 import 'package:taurusai/services/add_address_service.dart';
 import 'package:taurusai/widgets/input_widget.dart';
 import 'package:taurusai/widgets/button_widget.dart';
+//  code to get the current user id
 
 String? getCurrentUserId() {
   final auth.User? user = auth.FirebaseAuth.instance.currentUser;
@@ -29,7 +30,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   final _formKey = GlobalKey<FormState>();
   String street = '';
   String city = ''; // Add city field
-  String state = ''; // Add state field     
+  String state = ''; // Add state field
   String country = ''; // Add country field
   String postalCode = ''; // Add postalCode field
   String additionalInfo = ''; // Add additionalInfo field
@@ -145,13 +146,15 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       buildTextField(
                         "Street Address",
                         _streetController,
-                        (value) => value!.isEmpty ? "Street Address is required" : null,                  
+                        (value) => value!.isEmpty
+                            ? "Street Address is required"
+                            : null,
                         (value) => street = value!,
                       ),
                       SizedBox(height: 12),
                       buildTextField(
                         "City",
-                         _cityController,
+                        _cityController,
                         (value) => value!.isEmpty ? "City is required" : null,
                         (value) => city = value!,
                         icon: Icons.location_city,
@@ -159,10 +162,10 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       SizedBox(height: 16),
                       buildTextField(
                         "State",
-                         _stateController,
+                        _stateController,
                         (value) => value!.isEmpty ? "State is required" : null,
                         (value) => state = value!,
-                                                icon: Icons.location_on,
+                        icon: Icons.location_on,
                       ),
                       SizedBox(height: 16),
                       SizedBox(
@@ -186,7 +189,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       buildTextField(
                         "Postal Code",
                         _postalCodeController,
-                        (value) => value!.isEmpty ? "Postal Code is required" : null,
+                        (value) =>
+                            value!.isEmpty ? "Postal Code is required" : null,
                         (value) => postalCode = value!,
                         icon: Icons.location_on,
                       ),
@@ -196,7 +200,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         _additionalInfoController,
                         (value) => null,
                         (value) => additionalInfo = value!,
-                                                icon: Icons.info_outline,
+                        icon: Icons.info_outline,
                       ),
                       SizedBox(height: 20),
                       buildButton(_saveAddress, text: "Save Address"),
