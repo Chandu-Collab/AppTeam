@@ -119,40 +119,64 @@ class _AddTopicScreenState extends State<AddTopicScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       SizedBox(height: 20),
-                      buildTextField(
-                        'Name',
-                        _nameController,
-                        (value) => value == null || value.isEmpty
-                            ? 'Please enter a name'
-                            : null,
-                        (value) => _nameController.text = value!,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: buildTextField(
+                              'Name',
+                              _nameController,
+                              (value) => value == null || value.isEmpty
+                                  ? 'Please enter a name'
+                                  : null,
+                              (value) => _nameController.text = value!,
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 20),
-                      buildTextField(
-                        'Title',
-                        _titleController,
-                        (value) => value == null || value.isEmpty
-                            ? 'Please enter a title'
-                            : null,
-                        (value) => _titleController.text = value!,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: buildTextField(
+                              'Title',
+                              _titleController,
+                              (value) => value == null || value.isEmpty
+                                  ? 'Please enter a title'
+                                  : null,
+                              (value) => _titleController.text = value!,
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 20),
-                      buildTextField(
-                        'Instructor',
-                        _instructorController,
-                        (value) => value == null || value.isEmpty
-                            ? 'Please enter an instructor name'
-                            : null,
-                        (value) => _instructorController.text = value!,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: buildTextField(
+                              'Instructor',
+                              _instructorController,
+                              (value) => value == null || value.isEmpty
+                                  ? 'Please enter an instructor name'
+                                  : null,
+                              (value) => _instructorController.text = value!,
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 20),
-                      buildTextField(
-                        'Study Video URL',
-                        _videoUrlController,
-                        (value) => value == null || value.isEmpty
-                            ? 'Please enter a video URL'
-                            : null,
-                        (value) => _videoUrlController.text = value!,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: buildTextField(
+                              'Study Video URL',
+                              _videoUrlController,
+                              (value) => value == null || value.isEmpty
+                                  ? 'Please enter a video URL'
+                                  : null,
+                              (value) => _videoUrlController.text = value!,
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 20),
                       GestureDetector(
@@ -182,14 +206,20 @@ class _AddTopicScreenState extends State<AddTopicScreen> {
                         ],
                       ),
                       if (_isDescriptionExpanded)
-                        buildTextField(
-                          'Description',
-                          _descriptionController,
-                          (value) => value == null || value.isEmpty
-                              ? 'Please enter a description'
-                              : null,
-                          (value) => _descriptionController.text = value!,
-                          maxLines: 3,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: buildTextField(
+                                'Description',
+                                _descriptionController,
+                                (value) => value == null || value.isEmpty
+                                    ? 'Please enter a description'
+                                    : null,
+                                (value) => _descriptionController.text = value!,
+                                maxLines: 3,
+                              ),
+                            ),
+                          ],
                         ),
                       SizedBox(height: 20),
                       Column(
@@ -201,7 +231,7 @@ class _AddTopicScreenState extends State<AddTopicScreen> {
                                 children: [
                                   Expanded(
                                     child: buildTextField(
-                                      'Question',
+                                      'Question ${index + 1}',
                                       TextEditingController(text: _questions[index]),
                                       (value) => value == null || value.isEmpty
                                           ? 'Please enter a question'
