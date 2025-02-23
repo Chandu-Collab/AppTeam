@@ -8,6 +8,7 @@ import 'package:taurusai/screens/address_list.dart';
 import 'package:taurusai/services/add_address_service.dart';
 import 'package:taurusai/services/user_service.dart';
 import 'package:taurusai/widgets/resume_upload_widget.dart';
+import 'package:taurusai/widgets/input_widget.dart'; // Import the buildTextField function
 
 class ProfileEditPage extends StatefulWidget {
   final User user;
@@ -77,6 +78,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       Navigator.pop(context);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -119,39 +121,46 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   ),
                 ),
                 SizedBox(height: 20),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Enter your name' : null,
+                Row(
+                  children: [
+                    Expanded(
+                      child: buildTextField(
+                        'Full Name',
+                        _nameController,
+                        (value) => value!.isEmpty ? 'Enter your name' : null,
+                        (value) => _nameController.text = value!,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email Address',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Enter your email' : null,
+                SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: buildTextField(
+                        'Email Address',
+                        _emailController,
+                        (value) => value!.isEmpty ? 'Enter your email' : null,
+                        (value) => _emailController.text = value!,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _bioController,
-                  decoration: InputDecoration(
-                    labelText: 'Short Bio',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  maxLines: 3,
+                SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: buildTextField(
+                        'Bio',
+                        _bioController,
+                        null,
+                        (value) => _bioController.text = value!,
+                        maxLines: 3,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 24),
-                SizedBox(height: 16),
+                SizedBox(height: 20),
                 FutureBuilder<List<Address>>(
                   future: _addressesFuture,
                   builder: (context, snapshot) {
@@ -173,7 +182,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                       builder: (context) =>
                                           AddressFormScreen()),
                                 ).then((_) {
-                                  setState(() {  
+                                  setState(() {
                                     _addressesFuture = _fetchAddresses();
                                   });
                                 });
@@ -252,7 +261,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                               },
                             ),
                             if (hasAddresses)
-                              IconButton( icon: Icon(Icons.edit),
+                              IconButton(
+                                icon: Icon(Icons.edit),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -335,8 +345,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                     MaterialPageRoute(
                                         builder: (context) => AddressListPage(
                                             userId:
-                                                getCurrentUserId() as String)), 
-                                    ).then((_) {
+                                                getCurrentUserId() as String)),
+                                  ).then((_) {
                                     setState(() {
                                       _addressesFuture = _fetchAddresses();
                                     });

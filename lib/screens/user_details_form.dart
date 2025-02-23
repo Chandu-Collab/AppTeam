@@ -80,13 +80,7 @@ class _UserDetailsFormState extends State<UserDetailsForm> {
                 ),
               ),
               SizedBox(height: 20),
-              TextFormField(
-                initialValue: name,
-                decoration: InputDecoration(labelText: 'Name'),
-                validator: (value) => value!.isEmpty ? 'Enter your name' : null,
-                onSaved: (value) => name = value!,
-              ),
-              buildTextField("name", _usernameController, (value) {}, (value) => name = value!),
+              buildTextField("Name", _nameController, (value) {}, (value) => name = value!),
               SizedBox(height: 20),
                buildTextField("Username", _usernameController, (value) {
                  if (value!.isEmpty) {
