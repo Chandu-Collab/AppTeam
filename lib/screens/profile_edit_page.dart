@@ -95,6 +95,12 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               style:
                   TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           centerTitle: true,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.save, color: Colors.black),
+              onPressed: _saveProfile,
+            ),
+          ],
         ),
         body: SingleChildScrollView(
           padding: EdgeInsets.all(16),
