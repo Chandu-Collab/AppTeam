@@ -4,6 +4,7 @@ import 'package:taurusai/models/post.dart';
 import 'package:taurusai/models/user.dart';
 import 'package:taurusai/services/post_service.dart';
 import 'package:taurusai/services/user_service.dart';
+import 'package:taurusai/widgets/input_widget.dart'; // Import the buildTextField function
 
 class PostPage extends StatefulWidget {
   final User user;
@@ -61,12 +62,10 @@ class _PostPageState extends State<PostPage> {
         content: _contentController.text,
         createdAt: DateTime.now(),
         likes: 0,
-        location:
-            'Unknown', // You might want to get this from the device or user input
+        location: 'Unknown', // You might want to get this from the device or user input
         username: widget.user.userName,
         userProfileUrl: widget.user.url ?? '',
-        url: _imagePath ??
-            _videoPath, // You might want to upload this file and get a URL
+        url: _imagePath ?? _videoPath, // You might want to upload this file and get a URL
       );
 
       await _postService.createPost(newPost);
@@ -94,13 +93,12 @@ class _PostPageState extends State<PostPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _contentController,
+            buildTextField(
+              'Content',
+              _contentController,
+              (value) => value!.isEmpty ? 'Please enter some content' : null,
+              (value) => _contentController.text = value!,
               maxLines: 5,
-              decoration: InputDecoration(
-                hintText: 'What do you want to share?',
-                border: OutlineInputBorder(),
-              ),
             ),
             SizedBox(height: 16),
             Row(
@@ -126,8 +124,7 @@ class _PostPageState extends State<PostPage> {
             SizedBox(height: 16),
             if (_imagePath != null) Text('Image selected: $_imagePath'),
             if (_videoPath != null) Text('Video selected: $_videoPath'),
-            if (_documentPath != null)
-              Text('Document selected: $_documentPath'),
+            if (_documentPath != null) Text('Document selected: $_documentPath'),
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: _createPost,

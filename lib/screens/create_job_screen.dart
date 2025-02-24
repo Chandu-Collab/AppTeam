@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:taurusai/models/job.dart';
 import 'package:taurusai/models/user.dart';
 import 'package:taurusai/services/job_service.dart';
+import 'package:taurusai/widgets/input_widget.dart'; // Import the buildTextField function
 
 class CreateJobScreen extends StatefulWidget {
   User user;
@@ -28,6 +29,20 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   List<String> skills = [];
   String email = '';
 
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _companyController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _jobTypeController = TextEditingController();
+  final TextEditingController _experienceLevelController = TextEditingController();
+  final TextEditingController _salaryRangeController = TextEditingController();
+  final TextEditingController _responsibilitiesController = TextEditingController();
+  final TextEditingController _requirementsController = TextEditingController();
+  final TextEditingController _benefitsController = TextEditingController();
+  final TextEditingController _skillsController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _companyLogoController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,84 +57,96 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Job Title'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter a job title' : null,
-                onSaved: (value) => title = value!,
+              buildTextField(
+                'Job Title',
+                _titleController,
+                (value) => value!.isEmpty ? 'Please enter a job title' : null,
+                (value) => title = value!,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Company'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter a company name' : null,
-                onSaved: (value) => company = value!,
+              buildTextField(
+                'Company',
+                _companyController,
+                (value) => value!.isEmpty ? 'Please enter a company name' : null,
+                (value) => company = value!,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Location'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter a location' : null,
-                onSaved: (value) => location = value!,
+              buildTextField(
+                'Location',
+                _locationController,
+                (value) => value!.isEmpty ? 'Please enter a location' : null,
+                (value) => location = value!,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Description'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter a job description' : null,
-                onSaved: (value) => description = value!,
+              buildTextField(
+                'Description',
+                _descriptionController,
+                (value) => value!.isEmpty ? 'Please enter a job description' : null,
+                (value) => description = value!,
                 maxLines: 5,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Job Type'),
-                onSaved: (value) => jobType = value!,
+              buildTextField(
+                'Job Type',
+                _jobTypeController,
+                null,
+                (value) => jobType = value!,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Experience Level'),
-                onSaved: (value) => experienceLevel = value!,
+              buildTextField(
+                'Experience Level',
+                _experienceLevelController,
+                null,
+                (value) => experienceLevel = value!,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Salary Range'),
-                onSaved: (value) => salaryRange = value!,
+              buildTextField(
+                'Salary Range',
+                _salaryRangeController,
+                null,
+                (value) => salaryRange = value!,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(
-                    labelText: 'Responsibilities (comma-separated)'),
-                onSaved: (value) => responsibilities = value!.split(','),
+              buildTextField(
+                'Responsibilities (comma-separated)',
+                _responsibilitiesController,
+                null,
+                (value) => responsibilities = value!.split(','),
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(
-                    labelText: 'Requirements (comma-separated)'),
-                onSaved: (value) => requirements = value!.split(','),
+              buildTextField(
+                'Requirements (comma-separated)',
+                _requirementsController,
+                null,
+                (value) => requirements = value!.split(','),
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration:
-                    InputDecoration(labelText: 'Benefits (comma-separated)'),
-                onSaved: (value) => benefits = value!.split(','),
+              buildTextField(
+                'Benefits (comma-separated)',
+                _benefitsController,
+                null,
+                (value) => benefits = value!.split(','),
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration:
-                    InputDecoration(labelText: 'Skills (comma-separated)'),
-                onSaved: (value) => skills = value!.split(','),
+              buildTextField(
+                'Skills (comma-separated)',
+                _skillsController,
+                null,
+                (value) => skills = value!.split(','),
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Email'),
-                onSaved: (value) => email = value!,
+              buildTextField(
+                'Email',
+                _emailController,
+                null,
+                (value) => email = value!,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Company Logo URL'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter a company logo URL' : null,
-                onSaved: (value) => companyLogo = value!,
+              buildTextField(
+                'Company Logo URL',
+                _companyLogoController,
+                (value) => value!.isEmpty ? 'Please enter a company logo URL' : null,
+                (value) => companyLogo = value!,
               ),
               SizedBox(height: 24),
               ElevatedButton(
