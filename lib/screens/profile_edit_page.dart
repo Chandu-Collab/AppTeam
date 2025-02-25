@@ -2,22 +2,23 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:taurusai/models/address.dart';
-import 'package:taurusai/models/user.dart';
+import 'package:taurusai/models/user.dart' as app_user;
 import 'package:taurusai/screens/add_address_screen.dart';
 import 'package:taurusai/screens/address_list.dart';
 import 'package:taurusai/services/add_address_service.dart';
 import 'package:taurusai/services/user_service.dart';
 import 'package:taurusai/widgets/resume_upload_widget.dart';
-import 'package:taurusai/widgets/input_widget.dart'; // Import the buildTextField function
+import 'package:taurusai/widgets/input_widget.dart'; // Provides buildTextField
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:taurusai/screens/education_filling_screen.dart';
-import 'package:taurusai/models/education.dart'; // Import the Education class
+import 'package:taurusai/models/education.dart'; // Education model
 import 'package:taurusai/screens/education_edit_screen.dart';
 import 'package:taurusai/screens/add_position_screen.dart';
 import 'package:taurusai/screens/add_career_break_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 
 class ProfileEditPage extends StatefulWidget {
-  final User user;
+  final app_user.User user;
 
   ProfileEditPage({required this.user});
 
@@ -68,10 +69,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     if (_formKey.currentState!.validate()) {
       String? imageUrl;
       if (_image != null) {
-        imageUrl =
-            await _userService.uploadProfileImage(widget.user.id, _image!);
+        imageUrl = await _userService.uploadProfileImage(widget.user.id, _image!);
       }
-      User updatedUser = widget.user.copyWith(
+      app_user.User updatedUser = widget.user.copyWith(
         profileName: _nameController.text,
         email: _emailController.text,
         bio: _bioController.text,
@@ -90,9 +90,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     String? userId = getCurrentUserId();
     if (userId != null) {
       return FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('experiences')
+          .collection('taurusai')
+          .doc('users')
+          .collection(userId)
+          .doc('experiences')
+          .collection('positions')
           .orderBy('createdAt', descending: true)
           .snapshots();
     } else {
@@ -143,15 +145,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     );
   }
 
-  // Dummy function to get current user id – replace with your actual auth logic.
+  // Get current user's UID using FirebaseAuth.
   String? getCurrentUserId() {
-    // For example, using FirebaseAuth:
-    // return FirebaseAuth.instance.currentUser?.uid;
-    return "dummyUserId";
+    return FirebaseAuth.instance.currentUser?.uid;
   }
 
   @override
   Widget build(BuildContext context) {
+    final String? currentUserId = getCurrentUserId();
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -163,8 +164,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text('Edit Profile',
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           centerTitle: true,
           actions: [
             IconButton(
@@ -206,8 +206,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       child: buildTextField(
                         'Full Name',
                         _nameController,
-                        (value) =>
-                            value!.isEmpty ? 'Enter your name' : null,
+                        (value) => value!.isEmpty ? 'Enter your name' : null,
                         (value) => _nameController.text = value!,
                       ),
                     ),
@@ -221,8 +220,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       child: buildTextField(
                         'Email Address',
                         _emailController,
-                        (value) =>
-                            value!.isEmpty ? 'Enter your email' : null,
+                        (value) => value!.isEmpty ? 'Enter your email' : null,
                         (value) => _emailController.text = value!,
                       ),
                     ),
@@ -244,28 +242,23 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   ],
                 ),
                 SizedBox(height: 20),
-                // Addresses Section (unchanged)
+                // Addresses Section
                 FutureBuilder<List<Address>>(
                   future: _addressesFuture,
                   builder: (context, snapshot) {
-                    bool hasAddresses =
-                        snapshot.hasData && snapshot.data!.isNotEmpty;
+                    bool hasAddresses = snapshot.hasData && snapshot.data!.isNotEmpty;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Text('Addresses',
-                                style:
-                                    Theme.of(context).textTheme.titleLarge),
+                            Text('Addresses', style: Theme.of(context).textTheme.titleLarge),
                             IconButton(
                               icon: Icon(Icons.add),
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          AddressFormScreen()),
+                                  MaterialPageRoute(builder: (context) => AddressFormScreen()),
                                 ).then((_) {
                                   setState(() {
                                     _addressesFuture = _fetchAddresses();
@@ -280,8 +273,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => AddressListPage(
-                                            userId: getCurrentUserId() as String)),
+                                        builder: (context) =>
+                                            AddressListPage(userId: currentUserId ?? '')),
                                   ).then((_) {
                                     setState(() {
                                       _addressesFuture = _fetchAddresses();
@@ -301,8 +294,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                 .map((address) => ListTile(
                                       title: Text(
                                           "${address.street}, ${address.city}",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold)),
+                                          style: TextStyle(fontWeight: FontWeight.bold)),
                                       subtitle: Text(
                                           "${address.state}, ${address.country} - ${address.postalCode}"),
                                       trailing: IconButton(
@@ -312,9 +304,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                             context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    AddressFormScreen(
-                                                        addressId:
-                                                            address.id)),
+                                                    AddressFormScreen(addressId: address.id)),
                                           ).then((_) {
                                             setState(() {
                                               _addressesFuture = _fetchAddresses();
@@ -330,11 +320,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   },
                 ),
                 SizedBox(height: 20),
-                // Experiences Section (updated)
+                // Experiences Section
                 Row(
                   children: [
-                    Text('Experiences',
-                        style: Theme.of(context).textTheme.titleLarge),
+                    Text('Experiences', style: Theme.of(context).textTheme.titleLarge),
                     IconButton(
                       icon: Icon(Icons.add),
                       onPressed: _showAddExperienceOptions,
@@ -357,8 +346,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         Widget content;
                         if (type == 'position') {
                           // For a position, display title, company, employment type, and date range.
-                          String start =
-                              "${data['startMonth'] ?? ""} ${data['startYear'] ?? ""}";
+                          String start = "${data['startMonth'] ?? ""} ${data['startYear'] ?? ""}";
                           String end = (data['currentlyWorking'] == true)
                               ? "Present"
                               : "${data['endMonth'] ?? ""} ${data['endYear'] ?? ""}";
@@ -376,8 +364,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                           );
                         } else if (type == 'career_break') {
                           // For a career break, display career break type, location, date range, and description.
-                          String start =
-                              "${data['startMonth'] ?? ""} ${data['startYear'] ?? ""}";
+                          String start = "${data['startMonth'] ?? ""} ${data['startYear'] ?? ""}";
                           String end = (data['currentlyOnBreak'] == true)
                               ? "Present"
                               : "${data['endMonth'] ?? ""} ${data['endYear'] ?? ""}";
@@ -405,7 +392,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                             trailing: IconButton(
                               icon: Icon(Icons.edit),
                               onPressed: () {
-                                // When editing, pass the entire document data and document ID to the appropriate screen.
+                                // When editing, pass the document data and ID to the appropriate screen.
                                 if (type == 'position') {
                                   Navigator.push(
                                     context,
@@ -440,23 +427,20 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   },
                 ),
                 SizedBox(height: 20),
-                // Education Section (unchanged)
+                // Education Section
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Education',
-                            style: Theme.of(context).textTheme.titleLarge),
+                        Text('Education', style: Theme.of(context).textTheme.titleLarge),
                         IconButton(
                           icon: Icon(Icons.add),
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      EducationFillingScreen()),
+                              MaterialPageRoute(builder: (context) => EducationFillingScreen()),
                             ).then((_) {
                               setState(() {
                                 // Refresh the view after adding education.
@@ -466,83 +450,82 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         ),
                       ],
                     ),
-                    StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(getCurrentUserId())
-                          .collection('education')
-                          .orderBy('from', descending: true)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        }
-                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                          return Text('No education details found.');
-                        }
-                        return Column(
-                          children: snapshot.data!.docs.map((doc) {
-                            final data = doc.data() as Map<String, dynamic>;
-                            Education edu = Education.fromJson(data);
-                            String dateRange =
-                                '${edu.from.toLocal().toString().split(' ')[0]} - ${edu.current ? 'Present' : edu.to != null ? edu.to!.toLocal().toString().split(' ')[0] : ''}';
-                            return Card(
-                              margin: EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 0),
-                              elevation: 2,
-                              child: ListTile(
-                                title: Text(edu.school),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('${edu.degree} in ${edu.fieldOfStudy}'),
-                                    Text(dateRange),
-                                    if (edu.description != null &&
-                                        edu.description!.isNotEmpty)
-                                      Text(edu.description!),
-                                  ],
-                                ),
-                                trailing: IconButton(
-                                  icon: Icon(Icons.edit),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            EducationEditScreen(
-                                          docId: doc.id,
-                                          education: edu,
-                                        ),
+                    currentUserId == null
+                        ? Container()
+                        : StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('taurusai')
+                                .doc('users')
+                                .collection(currentUserId)
+                                .doc('education')
+                                .collection('details')
+                                .orderBy('from', descending: true)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return Center(child: CircularProgressIndicator());
+                              }
+                              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                return Text('No education details found.');
+                              }
+                              return Column(
+                                children: snapshot.data!.docs.map((doc) {
+                                  final data = doc.data() as Map<String, dynamic>;
+                                  Education edu = Education.fromJson(data);
+                                  String dateRange =
+                                      '${edu.from.toLocal().toString().split(' ')[0]} - ${edu.current ? 'Present' : edu.to != null ? edu.to!.toLocal().toString().split(' ')[0] : ''}';
+                                  return Card(
+                                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                                    elevation: 2,
+                                    child: ListTile(
+                                      title: Text(edu.school),
+                                      subtitle: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('${edu.degree} in ${edu.fieldOfStudy}'),
+                                          Text(dateRange),
+                                          if (edu.description != null &&
+                                              edu.description!.isNotEmpty)
+                                            Text(edu.description!),
+                                        ],
                                       ),
-                                    ).then((_) {
-                                      setState(() {
-                                        // Refresh after editing if needed.
-                                      });
-                                    });
-                                  },
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        );
-                      },
-                    ),
+                                      trailing: IconButton(
+                                        icon: Icon(Icons.edit),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => EducationEditScreen(
+                                                docId: doc.id,
+                                                education: edu,
+                                              ),
+                                            ),
+                                          ).then((_) {
+                                            setState(() {
+                                              // Refresh after editing if needed.
+                                            });
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              );
+                            },
+                          ),
                   ],
                 ),
                 SizedBox(height: 20),
                 // Skills Section (unchanged)
                 Row(
                   children: [
-                    Text('Skills',
-                        style: Theme.of(context).textTheme.titleLarge),
+                    Text('Skills', style: Theme.of(context).textTheme.titleLarge),
                     IconButton(
                       icon: Icon(Icons.add),
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => AddressFormScreen()),
+                          MaterialPageRoute(builder: (context) => AddressFormScreen()),
                         ).then((_) {
                           setState(() {
                             _addressesFuture = _fetchAddresses();

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:taurusai/widgets/input_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 
 class AddPositionScreen extends StatefulWidget {
   /// [initialData] holds the stored fields for editing.
@@ -128,7 +129,8 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
     String? userId = getCurrentUserId();
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('User not logged in. Please login again.')));
+        SnackBar(content: Text('User not logged in. Please login again.')),
+      );
       return;
     }
 
@@ -154,22 +156,28 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
       if (widget.experienceId != null) {
         // Update existing document.
         await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('experiences')
-            .doc(widget.experienceId)
+            .collection('taurusai')
+            .doc('users')
+            .collection(userId)
+            .doc('experiences')
+            .collection('positions')
+            .doc(widget.experienceId) // Removed quotes here.
             .update(data);
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Experience updated successfully')));
+          SnackBar(content: Text('Experience updated successfully')),
+        );
       } else {
         // Add new document.
         await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('experiences')
+            .collection('taurusai')
+            .doc('users')
+            .collection(userId)
+            .doc('experiences')
+            .collection('positions')
             .add(data);
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Experience added successfully')));
+          SnackBar(content: Text('Experience added successfully')),
+        );
       }
       Navigator.pop(context);
     } catch (e) {
@@ -178,9 +186,9 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
     }
   }
 
-  /// Dummy function – replace with your auth logic.
+  /// Returns the current user's UID from FirebaseAuth.
   String? getCurrentUserId() {
-    return "dummyUserId";
+    return FirebaseAuth.instance.currentUser?.uid;
   }
 
   @override
@@ -261,8 +269,8 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
                       labelText: 'Month',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     ),
                     value: startMonth,
                     hint: const Text('Select Month'),
@@ -284,8 +292,8 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
                       labelText: 'Year',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     ),
                     value: startYear,
                     hint: const Text('Select Year'),
@@ -317,8 +325,8 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
                       labelText: 'Month',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     ),
                     value: endMonth,
                     hint: const Text('Select Month'),
@@ -342,8 +350,8 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
                       labelText: 'Year',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     ),
                     value: endYear,
                     hint: const Text('Select Year'),

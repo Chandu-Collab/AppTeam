@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:taurusai/widgets/input_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 
 class AddCareerBreakScreen extends StatefulWidget {
   /// [initialData] holds the stored fields for editing.
@@ -127,11 +128,14 @@ class _AddCareerBreakScreenState extends State<AddCareerBreakScreen> {
     };
 
     try {
+      // Updated Firestore path using the current user's ID.
       if (widget.experienceId != null) {
         await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('experiences')
+            .collection('taurusai')
+            .doc('users')
+            .collection(userId)
+            .doc('experiences')
+            .collection('positions')
             .doc(widget.experienceId)
             .update(data);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -139,9 +143,11 @@ class _AddCareerBreakScreenState extends State<AddCareerBreakScreen> {
         );
       } else {
         await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('experiences')
+            .collection('taurusai')
+            .doc('users')
+            .collection(userId)
+            .doc('experiences')
+            .collection('positions')
             .add(data);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Career break added successfully')),
@@ -154,9 +160,9 @@ class _AddCareerBreakScreenState extends State<AddCareerBreakScreen> {
     }
   }
 
-  /// Dummy function – replace with your auth logic.
+  /// Gets the current user’s UID from FirebaseAuth.
   String? getCurrentUserId() {
-    return "dummyUserId";
+    return FirebaseAuth.instance.currentUser?.uid;
   }
 
   @override
