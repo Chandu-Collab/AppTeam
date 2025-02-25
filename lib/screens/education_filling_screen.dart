@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:taurusai/models/education.dart'; // Your provided model
+import 'package:taurusai/models/education.dart';
+import 'package:taurusai/widgets/input_widget.dart'; // Import the buildTextField function
 
 class EducationFillingScreen extends StatefulWidget {
   @override
@@ -40,7 +41,7 @@ class _EducationFillingScreenState extends State<EducationFillingScreen> {
       context: context,
       initialDate: _toDate ?? now,
       firstDate: _fromDate ?? DateTime(1900),
-      lastDate: now,
+      lastDate: DateTime(2030),
     );
     if (picked != null) {
       setState(() {
@@ -88,66 +89,96 @@ class _EducationFillingScreenState extends State<EducationFillingScreen> {
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(
-                controller: _schoolController,
-                decoration: InputDecoration(labelText: 'School/University'),
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Please enter your school/university'
-                    : null,
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _degreeController,
-                decoration: InputDecoration(labelText: 'Degree'),
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Please enter your degree'
-                    : null,
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _fieldController,
-                decoration: InputDecoration(labelText: 'Field of Study'),
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Please enter your field of study'
-                    : null,
-              ),
-              SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
-                    child: TextFormField(
-                      readOnly: true,
-                      decoration: InputDecoration(labelText: 'From Date'),
-                      onTap: _selectFromDate,
-                      controller: TextEditingController(
+                    child: buildTextField(
+                      'School/University',
+                      _schoolController,
+                      (value) => (value == null || value.isEmpty)
+                          ? 'Please enter your school/university'
+                          : null,
+                      (value) {},
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: buildTextField(
+                      'Degree',
+                      _degreeController,
+                      (value) => (value == null || value.isEmpty)
+                          ? 'Please enter your degree'
+                          : null,
+                      (value) {},
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: buildTextField(
+                      'Field of Study',
+                      _fieldController,
+                      (value) => (value == null || value.isEmpty)
+                          ? 'Please enter your field of study'
+                          : null,
+                      (value) {},
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: buildTextField(
+                      'From Date',
+                      TextEditingController(
                         text: _fromDate != null
                             ? _fromDate!.toLocal().toString().split(' ')[0]
                             : '',
                       ),
-                      validator: (value) =>
-                          _fromDate == null ? 'Select start date' : null,
+                      (value) => _fromDate == null ? 'Select start date' : null,
+                      (value) {},
+                      icon: Icons.calendar_today,
+                      maxLines: 1,
+                      isNumeric: false,
+                      isPassword: false,
+                      readOnly: true,
+                      onTap: _selectFromDate,
                     ),
                   ),
                   SizedBox(width: 10),
                   if (!_current)
                     Expanded(
-                      child: TextFormField(
-                        readOnly: true,
-                        decoration: InputDecoration(labelText: 'To Date'),
-                        onTap: _selectToDate,
-                        controller: TextEditingController(
+                      child: buildTextField(
+                        'To Date',
+                        TextEditingController(
                           text: _toDate != null
                               ? _toDate!.toLocal().toString().split(' ')[0]
                               : '',
                         ),
-                        validator: (value) => !_current && _toDate == null
+                        (value) => !_current && _toDate == null
                             ? 'Select end date'
                             : null,
+                        (value) {},
+                        icon: Icons.calendar_today,
+                        maxLines: 1,
+                        isNumeric: false,
+                        isPassword: false,
+                        readOnly: true,
+                        onTap: _selectToDate,
                       ),
                     ),
                 ],
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               Row(
                 children: [
                   Text('Currently Studying'),
@@ -161,12 +192,19 @@ class _EducationFillingScreenState extends State<EducationFillingScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _descriptionController,
-                decoration:
-                    InputDecoration(labelText: 'Description (Optional)'),
-                maxLines: 3,
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: buildTextField(
+                      'Description (Optional)',
+                      _descriptionController,
+                      null,
+                      (value) {},
+                      maxLines: 3,
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 20),
               ElevatedButton(
