@@ -9,6 +9,10 @@ import 'package:taurusai/services/add_address_service.dart';
 import 'package:taurusai/services/user_service.dart';
 import 'package:taurusai/widgets/resume_upload_widget.dart';
 import 'package:taurusai/widgets/input_widget.dart'; // Import the buildTextField function
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:taurusai/screens/education_filling_screen.dart';
+import 'package:taurusai/models/education.dart'; // Import the Education class
+import 'package:taurusai/screens/education_edit_screen.dart';
 
 class ProfileEditPage extends StatefulWidget {
   final User user;
@@ -285,44 +289,103 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                               ),
                           ],
                         ),
-                        Row(
+                        // ... inside the build() method of ProfileEditPage, where you want the Education section to appear:
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Education',
-                                style: Theme.of(context).textTheme.titleLarge),
-                            IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          AddressFormScreen()),
-                                ).then((_) {
-                                  setState(() {
-                                    _addressesFuture = _fetchAddresses();
-                                  });
-                                });
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Education',
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge),
+                                IconButton(
+                                  icon: Icon(Icons.add),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              EducationFillingScreen()),
+                                    ).then((_) {
+                                      setState(() {
+                                        // Refresh the view after adding education.
+                                      });
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            StreamBuilder<QuerySnapshot>(
+                              stream: FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(getCurrentUserId())
+                                  .collection('education')
+                                  .orderBy('from', descending: true)
+                                  .snapshots(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(
+                                      child: CircularProgressIndicator());
+                                }
+                                if (!snapshot.hasData ||
+                                    snapshot.data!.docs.isEmpty) {
+                                  return Text('No education details found.');
+                                }
+                                return Column(
+                                  children: snapshot.data!.docs.map((doc) {
+                                    final data =
+                                        doc.data() as Map<String, dynamic>;
+                                    Education edu = Education.fromJson(data);
+                                    String dateRange =
+                                        '${edu.from.toLocal().toString().split(' ')[0]} - ${edu.current ? 'Present' : edu.to != null ? edu.to!.toLocal().toString().split(' ')[0] : ''}';
+                                    return Card(
+                                      margin: EdgeInsets.symmetric(
+                                          vertical: 8, horizontal: 0),
+                                      elevation: 2,
+                                      child: ListTile(
+                                        title: Text(edu.school),
+                                        subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                                '${edu.degree} in ${edu.fieldOfStudy}'),
+                                            Text(dateRange),
+                                            if (edu.description != null &&
+                                                edu.description!.isNotEmpty)
+                                              Text(edu.description!),
+                                          ],
+                                        ),
+                                        trailing: IconButton(
+                                          icon: Icon(Icons.edit),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EducationEditScreen(
+                                                  docId: doc.id,
+                                                  education: edu,
+                                                ),
+                                              ),
+                                            ).then((_) {
+                                              setState(() {
+                                                // Refresh after editing if needed.
+                                              });
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                );
                               },
                             ),
-                            if (hasAddresses)
-                              IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => AddressListPage(
-                                            userId:
-                                                getCurrentUserId() as String)),
-                                  ).then((_) {
-                                    setState(() {
-                                      _addressesFuture = _fetchAddresses();
-                                    });
-                                  });
-                                },
-                              ),
                           ],
                         ),
+
                         Row(
                           children: [
                             Text('Skills',
