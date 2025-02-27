@@ -2,10 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:taurusai/models/address.dart';
+import 'package:taurusai/models/skill.dart';
 import 'package:taurusai/models/user.dart' as app_user;
 import 'package:taurusai/screens/add_address_screen.dart';
+import 'package:taurusai/screens/add_edit_skills.dart';
 import 'package:taurusai/screens/address_list.dart';
 import 'package:taurusai/services/add_address_service.dart';
+import 'package:taurusai/services/skills_service.dart';
 import 'package:taurusai/services/user_service.dart';
 import 'package:taurusai/widgets/resume_upload_widget.dart';
 import 'package:taurusai/widgets/input_widget.dart'; // Provides buildTextField
@@ -29,6 +32,7 @@ class ProfileEditPage extends StatefulWidget {
 class _ProfileEditPageState extends State<ProfileEditPage> {
   final AddressService _addressService = AddressService();
   final UserService _userService = UserService();
+  final SkillService _skillsService = SkillService();
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
@@ -38,6 +42,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   File? _image;
   final picker = ImagePicker();
   late Future<List<Address>> _addressesFuture;
+  late Future<List<Skill>> _skillsFuture;
 
   @override
   void initState() {
@@ -46,6 +51,15 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     _bioController = TextEditingController(text: widget.user.bio);
     _emailController = TextEditingController(text: widget.user.email);
     _addressesFuture = _fetchAddresses();
+    _skillsFuture = _fetchSkills();
+  }
+
+  Future<List<Skill>> _fetchSkills() async {
+    String? userId = getCurrentUserId();
+    if (userId != null) {
+      return await _skillsService.getSkillsForUser(userId);
+    }
+    return [];
   }
 
   Future<List<Address>> _fetchAddresses() async {
@@ -69,7 +83,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     if (_formKey.currentState!.validate()) {
       String? imageUrl;
       if (_image != null) {
-        imageUrl = await _userService.uploadProfileImage(widget.user.id, _image!);
+        imageUrl =
+            await _userService.uploadProfileImage(widget.user.id, _image!);
       }
       app_user.User updatedUser = widget.user.copyWith(
         profileName: _nameController.text,
@@ -164,7 +179,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text('Edit Profile',
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           centerTitle: true,
           actions: [
             IconButton(
@@ -189,8 +205,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       backgroundImage: _image != null
                           ? FileImage(_image!)
                           : (widget.user.url != null
-                              ? NetworkImage(widget.user.url!)
-                              : AssetImage('assets/default_profile.png'))
+                                  ? NetworkImage(widget.user.url!)
+                                  : AssetImage('assets/default_profile.png'))
                               as ImageProvider,
                       child: _image == null && widget.user.url == null
                           ? Icon(Icons.camera_alt, size: 50, color: Colors.grey)
@@ -246,19 +262,23 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 FutureBuilder<List<Address>>(
                   future: _addressesFuture,
                   builder: (context, snapshot) {
-                    bool hasAddresses = snapshot.hasData && snapshot.data!.isNotEmpty;
+                    bool hasAddresses =
+                        snapshot.hasData && snapshot.data!.isNotEmpty;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Text('Addresses', style: Theme.of(context).textTheme.titleLarge),
+                            Text('Addresses',
+                                style: Theme.of(context).textTheme.titleLarge),
                             IconButton(
                               icon: Icon(Icons.add),
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => AddressFormScreen()),
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          AddressFormScreen()),
                                 ).then((_) {
                                   setState(() {
                                     _addressesFuture = _fetchAddresses();
@@ -273,8 +293,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) =>
-                                            AddressListPage(userId: currentUserId ?? '')),
+                                        builder: (context) => AddressListPage(
+                                            userId: currentUserId ?? '')),
                                   ).then((_) {
                                     setState(() {
                                       _addressesFuture = _fetchAddresses();
@@ -294,7 +314,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                 .map((address) => ListTile(
                                       title: Text(
                                           "${address.street}, ${address.city}",
-                                          style: TextStyle(fontWeight: FontWeight.bold)),
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
                                       subtitle: Text(
                                           "${address.state}, ${address.country} - ${address.postalCode}"),
                                       trailing: IconButton(
@@ -304,10 +325,12 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                             context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    AddressFormScreen(addressId: address.id)),
+                                                    AddressFormScreen(
+                                                        addressId: address.id)),
                                           ).then((_) {
                                             setState(() {
-                                              _addressesFuture = _fetchAddresses();
+                                              _addressesFuture =
+                                                  _fetchAddresses();
                                             });
                                           });
                                         },
@@ -323,7 +346,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 // Experiences Section
                 Row(
                   children: [
-                    Text('Experiences', style: Theme.of(context).textTheme.titleLarge),
+                    Text('Experiences',
+                        style: Theme.of(context).textTheme.titleLarge),
                     IconButton(
                       icon: Icon(Icons.add),
                       onPressed: _showAddExperienceOptions,
@@ -346,7 +370,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         Widget content;
                         if (type == 'position') {
                           // For a position, display title, company, employment type, and date range.
-                          String start = "${data['startMonth'] ?? ""} ${data['startYear'] ?? ""}";
+                          String start =
+                              "${data['startMonth'] ?? ""} ${data['startYear'] ?? ""}";
                           String end = (data['currentlyWorking'] == true)
                               ? "Present"
                               : "${data['endMonth'] ?? ""} ${data['endYear'] ?? ""}";
@@ -358,13 +383,15 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               Text(data['company'] ?? ""),
-                              Text("Employment: ${data['employmentType'] ?? ""}"),
+                              Text(
+                                  "Employment: ${data['employmentType'] ?? ""}"),
                               Text("Duration: $start - $end"),
                             ],
                           );
                         } else if (type == 'career_break') {
                           // For a career break, display career break type, location, date range, and description.
-                          String start = "${data['startMonth'] ?? ""} ${data['startYear'] ?? ""}";
+                          String start =
+                              "${data['startMonth'] ?? ""} ${data['startYear'] ?? ""}";
                           String end = (data['currentlyOnBreak'] == true)
                               ? "Present"
                               : "${data['endMonth'] ?? ""} ${data['endYear'] ?? ""}";
@@ -409,7 +436,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => AddCareerBreakScreen(
+                                      builder: (context) =>
+                                          AddCareerBreakScreen(
                                         initialData: data,
                                         experienceId: doc.id,
                                       ),
@@ -434,13 +462,16 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Education', style: Theme.of(context).textTheme.titleLarge),
+                        Text('Education',
+                            style: Theme.of(context).textTheme.titleLarge),
                         IconButton(
                           icon: Icon(Icons.add),
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => EducationFillingScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      EducationFillingScreen()),
                             ).then((_) {
                               setState(() {
                                 // Refresh the view after adding education.
@@ -462,27 +493,34 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                 .orderBy('from', descending: true)
                                 .snapshots(),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return Center(child: CircularProgressIndicator());
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return Center(
+                                    child: CircularProgressIndicator());
                               }
-                              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                              if (!snapshot.hasData ||
+                                  snapshot.data!.docs.isEmpty) {
                                 return Text('No education details found.');
                               }
                               return Column(
                                 children: snapshot.data!.docs.map((doc) {
-                                  final data = doc.data() as Map<String, dynamic>;
+                                  final data =
+                                      doc.data() as Map<String, dynamic>;
                                   Education edu = Education.fromJson(data);
                                   String dateRange =
                                       '${edu.from.toLocal().toString().split(' ')[0]} - ${edu.current ? 'Present' : edu.to != null ? edu.to!.toLocal().toString().split(' ')[0] : ''}';
                                   return Card(
-                                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                                    margin: EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 0),
                                     elevation: 2,
                                     child: ListTile(
                                       title: Text(edu.school),
                                       subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text('${edu.degree} in ${edu.fieldOfStudy}'),
+                                          Text(
+                                              '${edu.degree} in ${edu.fieldOfStudy}'),
                                           Text(dateRange),
                                           if (edu.description != null &&
                                               edu.description!.isNotEmpty)
@@ -495,7 +533,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => EducationEditScreen(
+                                              builder: (context) =>
+                                                  EducationEditScreen(
                                                 docId: doc.id,
                                                 education: edu,
                                               ),
@@ -517,24 +556,142 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 ),
                 SizedBox(height: 20),
                 // Skills Section (unchanged)
-                Row(
-                  children: [
-                    Text('Skills', style: Theme.of(context).textTheme.titleLarge),
-                    IconButton(
-                      icon: Icon(Icons.add),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => AddressFormScreen()),
-                        ).then((_) {
-                          setState(() {
-                            _addressesFuture = _fetchAddresses();
-                          });
-                        });
-                      },
-                    ),
-                  ],
+                FutureBuilder<List<Skill>>(
+                  future: _skillsFuture,
+                  builder: (context, snapshot) {
+                    bool hasSkills =
+                        snapshot.hasData && snapshot.data!.isNotEmpty;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text('Skills',
+                                style: Theme.of(context).textTheme.titleLarge),
+                            IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => SkillFormScreen()),
+                                ).then((_) {
+                                  setState(() {
+                                    _skillsFuture = _fetchSkills();
+                                  });
+                                });
+                              },
+                            ),
+                            if (hasSkills)
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddressListPage(
+                                          userId: currentUserId ?? ''),
+                                    ),
+                                  ).then((_) {
+                                    setState(() {
+                                      _skillsFuture = _fetchSkills();
+                                    });
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          Center(child: CircularProgressIndicator())
+                        else if (!hasSkills)
+                          Text("No skills found.")
+                        else
+                          Column(
+                            children: snapshot.data!
+                                .map((skill) => ListTile(
+                                      title: Text(skill.name,
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      subtitle:
+                                          Text("Level: ${skill.proficiency}"),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.edit),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      SkillFormScreen(
+                                                          skillId: skill.id),
+                                                ),
+                                              ).then((_) {
+                                                setState(() {
+                                                  _skillsFuture =
+                                                      _fetchSkills();
+                                                });
+                                              });
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.delete,
+                                                color: Colors.red),
+                                            onPressed: () async {
+                                              bool confirmDelete =
+                                                  await showDialog(
+                                                context: context,
+                                                builder: (context) =>
+                                                    AlertDialog(
+                                                  title: Text('Delete Skill'),
+                                                  content: Text(
+                                                      'Are you sure you want to delete this skill?'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context, false),
+                                                      child: Text('Cancel'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context, true),
+                                                      child: Text('Delete'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+
+                                              if (confirmDelete) {
+                                                await SkillService()
+                                                    .deleteSkill(currentUserId!,
+                                                        skill.id!);
+                                                setState(() {
+                                                  _skillsFuture =
+                                                      _fetchSkills();
+                                                });
+
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                      content: Text(
+                                                          'Skill deleted successfully!')),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                      ],
+                    );
+                  },
                 ),
+
                 SizedBox(height: 20),
                 // Resume Section (unchanged)
                 Text('Resume', style: Theme.of(context).textTheme.titleLarge),
