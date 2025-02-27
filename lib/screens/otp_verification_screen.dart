@@ -88,27 +88,27 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             try {
                               // Use verifyOtp to ensure that the phone number (with country code)
                               // is properly validated before verifying the OTP.
-                              User? user = await _auth.verifyOtp(widget.phoneNumber, _otp);
-                              if (user != null) {
-                                User fullUser = (await UserService().getUserById(user.id))!;
-                                if (widget.isSignUp || !fullUser.isProfileComplete!) {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => UserDetailsForm(user: fullUser),
-                                    ),
-                                  );
-                                } else {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => HomePage(user: fullUser),
-                                    ),
-                                  );
-                                }
-                              } else {
-                                _showErrorSnackBar('OTP verification failed. Please try again.');
-                              }
+                              // User? user = await _auth.verifyOtp(widget.phoneNumber, _otp);
+                              // if (user != null) {
+                              //   User fullUser = (await UserService().getUserById(user.id))!;
+                              //   if (widget.isSignUp || !fullUser.isProfileComplete!) {
+                              //     Navigator.pushReplacement(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) => UserDetailsForm(user: fullUser),
+                              //       ),
+                              //     );
+                              //   } else {
+                              //     Navigator.pushReplacement(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) => HomePage(user: fullUser),
+                              //       ),
+                              //     );
+                              //   }
+                              // } else {
+                              //   _showErrorSnackBar('OTP verification failed. Please try again.');
+                              // }
                             } catch (e) {
                               _showErrorSnackBar('Error: ${e.toString()}');
                             }

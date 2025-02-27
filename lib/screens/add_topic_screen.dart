@@ -38,16 +38,16 @@ class _AddTopicScreenState extends State<AddTopicScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       // Add the current topic details to the list.
-      _topics.add(Topic(
-        id: '',
-        name: _nameController.text,
-        description: _descriptionController.text,
-        instructor: _instructorController.text,
-        studyVideoUrl: _videoUrlController.text,
-        attachment: _attachmentPath,
-        title: _titleController.text,
-        question: _questions,
-      ));
+      // _topics.add(Topic(
+      //   id: '',
+      //   name: _nameController.text,
+      //   description: _descriptionController.text,
+      //   instructor: _instructorController.text,
+      //   studyVideoUrl: _videoUrlController.text,
+      //   attachment: _attachmentPath,
+      //   title: _titleController.text,
+      //   question: _questions,
+      // ));
 
       if (_moreTopic) {
         // If the checkbox is ticked, clear the form for the next topic.

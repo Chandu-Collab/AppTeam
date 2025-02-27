@@ -152,40 +152,40 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               ElevatedButton(
                 child: Text('Create Job'),
                 onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    Job newJob = Job(
-                      id: '', // This will be set by Firestore
-                      title: title,
-                      company: company,
-                      jobType: jobType,
-                      description: description,
-                      experienceLevel: experienceLevel,
-                      salaryRange: salaryRange,
-                      responsbilities: responsibilities,
-                      requirements: requirements,
-                      benefits: benefits,
-                      skills: skills,
-                      location: location,
-                      email: email,
-                      companyLogo: companyLogo,
-                      postedDate: DateTime.now().toIso8601String(),
-                      status: 'Open',
-                    );
-                    try {
-                      String jobId = await JobService().createJob(newJob);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text(
-                                'Job created successfully with ID: $jobId')),
-                      );
-                      Navigator.pop(context);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error creating job: $e')),
-                      );
-                    }
-                  }
+                  // if (_formKey.currentState!.validate()) {
+                  //   _formKey.currentState!.save();
+                  //   Job newJob = Job(
+                  //     id: '', // This will be set by Firestore
+                  //     title: title,
+                  //     company: company,
+                  //     jobType: jobType,
+                  //     description: description,
+                  //     experienceLevel: experienceLevel,
+                  //     salaryRange: salaryRange,
+                  //     responsbilities: responsibilities,
+                  //     requirements: requirements,
+                  //     benefits: benefits,
+                  //     skills: skills,
+                  //     location: location,
+                  //     email: email,
+                  //     companyLogo: companyLogo,
+                  //     postedDate: DateTime.now().toIso8601String(),
+                  //     status: 'Open',
+                  //   );
+                  //   try {
+                  //     String jobId = await JobService().createJob(newJob);
+                  //     ScaffoldMessenger.of(context).showSnackBar(
+                  //       SnackBar(
+                  //           content: Text(
+                  //               'Job created successfully with ID: $jobId')),
+                  //     );
+                  //     Navigator.pop(context);
+                  //   } catch (e) {
+                  //     ScaffoldMessenger.of(context).showSnackBar(
+                  //       SnackBar(content: Text('Error creating job: $e')),
+                  //     );
+                  //   }
+                  // }
                 },
               ),
             ],

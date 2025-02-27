@@ -40,35 +40,35 @@ class _JobsPageState extends State<JobsPage> {
       // Use test data if service fails
       setState(() {
         jobs = [
-          Job(
-            id: '1',
-            title: 'Software Engineer',
-            company: 'Tech Co',
-            jobType: 'Full-time',
-            description:
-                'We are looking for a talented software engineer to join our team...',
-            experienceLevel: 'Mid-level',
-            salaryRange: '\$80,000 - \$120,000',
-            responsbilities: [
-              'Develop high-quality software',
-              'Collaborate with cross-functional teams'
-            ],
-            requirements: [
-              'Bachelor\'s degree in Computer Science',
-              '3+ years of experience in software development'
-            ],
-            benefits: [
-              'Health insurance',
-              '401(k) matching',
-              'Flexible work hours'
-            ],
-            skills: ['Java', 'Python', 'JavaScript'],
-            location: 'San Francisco, CA',
-            email: 'jobs@techco.com',
-            companyLogo: 'https://placeholder.svg?height=100&width=100',
-            postedDate: '2023-07-01',
-            status: 'Open',
-          ),
+          // Job(
+          //   id: '1',
+          //   title: 'Software Engineer',
+          //   company: 'Tech Co',
+          //   jobType: 'Full-time',
+          //   description:
+          //       'We are looking for a talented software engineer to join our team...',
+          //   experienceLevel: 'Mid-level',
+          //   salaryRange: '\$80,000 - \$120,000',
+          //   responsbilities: [
+          //     'Develop high-quality software',
+          //     'Collaborate with cross-functional teams'
+          //   ],
+          //   requirements: [
+          //     'Bachelor\'s degree in Computer Science',
+          //     '3+ years of experience in software development'
+          //   ],
+          //   benefits: [
+          //     'Health insurance',
+          //     '401(k) matching',
+          //     'Flexible work hours'
+          //   ],
+          //   skills: ['Java', 'Python', 'JavaScript'],
+          //   location: 'San Francisco, CA',
+          //   email: 'jobs@techco.com',
+          //   companyLogo: 'https://placeholder.svg?height=100&width=100',
+          //   postedDate: '2023-07-01',
+          //   status: 'Open',
+          // ),
           // Add more test jobs here
         ];
       });

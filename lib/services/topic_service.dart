@@ -28,6 +28,14 @@ class TopicService {
         .toList();
   }
 
+  Future<List<Topic>> getTopicsByUserId(String userId) async {
+    QuerySnapshot snapshot =
+        await _topicsCollection.where('userId', isEqualTo: userId).get();
+    return snapshot.docs
+        .map((doc) => Topic.fromJson(doc.data() as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<void> updateTopic(Topic topic) async {
     await _topicsCollection.doc(topic.id).update(topic.toJson());
   }

@@ -7,10 +7,36 @@ class ApplicationService {
       .doc('jobs')
       .collection('applications');
 
-  Future<String> createApplication(Application application) async {
-    DocumentReference docRef =
-        await _applicationsCollection.add(application.toJson());
-    return docRef.id;
+  Future<Map<String, dynamic>> createApplication(
+      Application application) async {
+    try {
+      // Check if an application with the same jobId and userId already exists
+      QuerySnapshot existingApplications = await _applicationsCollection
+          .where('jobId', isEqualTo: application.jobId)
+          .where('userId', isEqualTo: application.userId)
+          .get();
+
+      if (existingApplications.docs.isNotEmpty) {
+        return {
+          'success': false,
+          'message': 'Application already exists for this job and user.',
+        };
+      }
+
+      // If no existing application is found, create the new application
+      DocumentReference docRef =
+          await _applicationsCollection.add(application.toJson());
+      return {
+        'success': true,
+        'applicationId': docRef.id,
+        'message': 'Application created successfully.',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error creating application: $e',
+      };
+    }
   }
 
   Future<Application?> getApplication(String applicationId) async {

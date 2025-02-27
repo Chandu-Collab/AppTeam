@@ -57,22 +57,22 @@ class _EducationFillingScreenState extends State<EducationFillingScreen> {
       String? uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
         // Create an Education object using your model
-        Education edu = Education(
-          school: _schoolController.text,
-          degree: _degreeController.text,
-          fieldOfStudy: _fieldController.text,
-          from: _fromDate!,
-          to: _current ? null : _toDate,
-          current: _current,
-          description: _descriptionController.text,
-        );
+        // Education edu = Education(
+        //   school: _schoolController.text,
+        //   degree: _degreeController.text,
+        //   fieldOfStudy: _fieldController.text,
+        //   from: _fromDate!,
+        //   to: _current ? null : _toDate,
+        //   current: _current,
+        //   description: _descriptionController.text,
+        // );
         // Save the education details under the user's subcollection "education"
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('education')
-            .add(edu.toJson());
-        Navigator.pop(context);
+        // await FirebaseFirestore.instance
+        //     .collection('users')
+        //     .doc(uid)
+        //     .collection('education')
+        //     .add(edu.toJson());
+        // Navigator.pop(context);
       }
     }
   }

@@ -76,22 +76,22 @@ class _EducationEditScreenState extends State<EducationEditScreen> {
         (_current || _toDate != null)) {
       String? uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
-        Education updatedEdu = Education(
-          school: _schoolController.text,
-          degree: _degreeController.text,
-          fieldOfStudy: _fieldController.text,
-          from: _fromDate!,
-          to: _current ? null : _toDate,
-          current: _current,
-          description: _descriptionController.text,
-        );
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('education')
-            .doc(widget.docId)
-            .update(updatedEdu.toJson());
-        Navigator.pop(context);
+        // Education updatedEdu = Education(
+        //   school: _schoolController.text,
+        //   degree: _degreeController.text,
+        //   fieldOfStudy: _fieldController.text,
+        //   from: _fromDate!,
+        //   to: _current ? null : _toDate,
+        //   current: _current,
+        //   description: _descriptionController.text,
+        // );
+        // await FirebaseFirestore.instance
+        //     .collection('users')
+        //     .doc(uid)
+        //     .collection('education')
+        //     .doc(widget.docId)
+        //     .update(updatedEdu.toJson());
+        // Navigator.pop(context);
       }
     }
   }

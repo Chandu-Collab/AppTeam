@@ -60,17 +60,17 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _sendOtpAndNavigate() async {
     setState(() => isLoading = true);
     try {
-      String verificationId = await _auth.sendOtp(input);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OTPVerificationScreen(
-            verificationId: verificationId,
-            phoneNumber: input,
-            isSignUp: false,
-          ),
-        ),
-      );
+      // String verificationId = await _auth.sendOtp(input);
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => OTPVerificationScreen(
+      //       verificationId: verificationId,
+      //       phoneNumber: input,
+      //       isSignUp: false,
+      //     ),
+      //   ),
+      // );
     } catch (e) {
       _showErrorSnackBar('Failed to send OTP: ${e.toString()}');
     }

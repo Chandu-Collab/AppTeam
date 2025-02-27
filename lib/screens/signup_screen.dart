@@ -218,7 +218,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                   ),
                                 );
-                              }, onError: (error) {  },
+                              }, 
+                              // onError: (error) {  },
                             );
                             setState(() => isEmailLoading = false);
                             return;

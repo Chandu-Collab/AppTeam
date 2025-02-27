@@ -11,8 +11,8 @@ class CourseService {
       .collection('listings');
   final CollectionReference _topicsCollection = FirebaseFirestore.instance
       .collection('taurusai')
-      .doc('topics')
-      .collection('listings');
+      .doc('courses')
+      .collection('topics');
 
   Future<String> createCourse(Course course) async {
     DocumentReference docRef = await _coursesCollection.add(course.toJson());

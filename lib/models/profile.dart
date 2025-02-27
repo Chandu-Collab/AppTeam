@@ -1,7 +1,6 @@
-import 'package:taurusai/models/projects.dart';
-
 import 'experience.dart';
 import 'education.dart';
+import 'Project.dart';
 import 'social.dart';
 import 'certificate.dart';
 import 'address.dart';
@@ -20,7 +19,7 @@ class Profile {
   final String? githubUsername;
   final List<Experience> experience;
   final List<Education> education;
-  final List<Project> projects; // Change dependents to projects
+  final List<Project> dependents;
   final Social social;
   final DateTime date;
   final List<Certificate> certificates;
@@ -40,7 +39,7 @@ class Profile {
     this.githubUsername,
     required this.experience,
     required this.education,
-    required this.projects, // Change dependents to projects
+    required this.dependents,
     required this.social,
     required this.date,
     required this.certificates,
@@ -66,9 +65,8 @@ class Profile {
       education: (json['education'] as List)
           .map((e) => Education.fromJson(e))
           .toList(),
-      projects: (json['projects'] as List) // Change dependents to projects
-          .map((e) => Project.fromJson(e))
-          .toList(),
+      dependents:
+          (json['dependents'] as List).map((e) => Project.fromJson(e)).toList(),
       social: Social.fromJson(json['social']),
       date: DateTime.parse(json['date']),
       certificates: (json['certificates'] as List)
@@ -98,7 +96,7 @@ class Profile {
       'githubUsername': githubUsername,
       'experience': experience.map((e) => e.toJson()).toList(),
       'education': education.map((e) => e.toJson()).toList(),
-      'projects': projects.map((e) => e.toJson()).toList(), // Change dependents to projects
+      'dependents': dependents.map((e) => e.toJson()).toList(),
       'social': social.toJson(),
       'date': date.toIso8601String(),
       'certificates': certificates.map((c) => c.toJson()).toList(),

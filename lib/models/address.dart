@@ -1,5 +1,5 @@
 class Address {
-  String id;
+  final String id;
   final String street;
   final String city;
   final String state;

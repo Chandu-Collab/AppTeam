@@ -13,7 +13,9 @@ class AddressService {
   Future<String> createAddress(String userId, Address address) async {
     DocumentReference docRef =
         _addressesCollection(userId).doc(); // Generate a new document reference
-    address.id = docRef.id; // Assign the generated ID to the address
+
+    // address.id = docRef.id; // Assign the generated ID to the address
+
     await docRef.set(address
         .toJson()); // Use set() instead of add() to ensure the ID is stored
     print('Address created with ID: ${docRef.id}');

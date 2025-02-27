@@ -15,6 +15,7 @@ class Job {
   final String companyLogo;
   final String postedDate;
   final String status;
+  final String? userId; // Add userId field
 
   Job({
     required this.id,
@@ -33,6 +34,7 @@ class Job {
     required this.companyLogo,
     required this.postedDate,
     required this.status,
+    required this.userId, // Add userId to constructor
   });
 
   factory Job.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class Job {
       companyLogo: json['companyLogo'],
       postedDate: json['postedDate'],
       status: json['status'],
+      userId: json['userId'], // Add userId to fromJson
     );
   }
 
@@ -74,6 +77,7 @@ class Job {
       'companyLogo': companyLogo,
       'postedDate': postedDate,
       'status': status,
+      'userId': userId, // Add userId to toJson
     };
   }
 }
