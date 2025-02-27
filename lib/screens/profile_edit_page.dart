@@ -44,6 +44,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   late Future<List<Address>> _addressesFuture;
   late Future<List<Skill>> _skillsFuture;
 
+  String userId = FirebaseAuth.instance.currentUser!.uid;
+
   @override
   void initState() {
     super.initState();
@@ -98,6 +100,12 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       );
       Navigator.pop(context);
     }
+  }
+
+  Future<void> _deleteAddress(String addressId) async {
+    // Implement your delete logic here, e.g., API call to delete the address
+    // Example:
+    await _addressService.deleteAddress(userId, addressId);
   }
 
   // Stream for experiences stored under the current user's "experiences" subcollection.
@@ -264,6 +272,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   builder: (context, snapshot) {
                     bool hasAddresses =
                         snapshot.hasData && snapshot.data!.isNotEmpty;
+                    print("Has addresses: $hasAddresses");
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -313,27 +322,72 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                             children: snapshot.data!
                                 .map((address) => ListTile(
                                       title: Text(
-                                          "${address.street}, ${address.city}",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold)),
+                                        "${address.street}, ${address.city}",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
                                       subtitle: Text(
                                           "${address.state}, ${address.country} - ${address.postalCode}"),
-                                      trailing: IconButton(
-                                        icon: Icon(Icons.edit),
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.edit),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      AddressFormScreen(
+                                                          addressId:
+                                                              address.id),
+                                                ),
+                                              ).then((_) {
+                                                setState(() {
+                                                  _addressesFuture =
+                                                      _fetchAddresses();
+                                                });
+                                              });
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.delete,
+                                                color: Colors.red),
+                                            onPressed: () async {
+                                              bool confirmed = await showDialog(
+                                                context: context,
                                                 builder: (context) =>
-                                                    AddressFormScreen(
-                                                        addressId: address.id)),
-                                          ).then((_) {
-                                            setState(() {
-                                              _addressesFuture =
-                                                  _fetchAddresses();
-                                            });
-                                          });
-                                        },
+                                                    AlertDialog(
+                                                  title: Text('Delete Address'),
+                                                  content: Text(
+                                                      'Are you sure you want to delete this address?'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.of(context)
+                                                              .pop(false),
+                                                      child: Text('Cancel'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.of(context)
+                                                              .pop(true),
+                                                      child: Text('Delete'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                              if (confirmed) {
+                                                await _deleteAddress(
+                                                    address.id);
+                                                setState(() {
+                                                  _addressesFuture =
+                                                      _fetchAddresses();
+                                                });
+                                              }
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ))
                                 .toList(),
@@ -342,6 +396,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     );
                   },
                 ),
+
                 SizedBox(height: 20),
                 // Experiences Section
                 Row(
