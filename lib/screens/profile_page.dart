@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:taurusai/models/address.dart';
 import 'package:taurusai/models/chat.dart';
 import 'package:taurusai/models/user.dart';
 import 'package:taurusai/screens/chat_screen.dart';
 import 'package:taurusai/screens/profile_edit_page.dart';
+import 'package:taurusai/services/add_address_service.dart';
 import 'package:taurusai/services/user_service.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -17,11 +19,18 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool isFollowing = false;
   late Future<User?> userFuture;
+  List<Address>? address; // Add a variable to store the address
 
   @override
   void initState() {
     super.initState();
     userFuture = UserService().getUser(widget.user.id);
+    _fetchAddress(); // Fetch the address
+  }
+
+  void _fetchAddress() async {
+    address = await AddressService().getAddressesForUser(widget.user.id);
+    setState(() {});
   }
 
   @override
@@ -69,6 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildHeader(user),
                 _buildActionButtons(user),
                 _buildSection('About', user.bio ?? ''),
+                _buildAddressSection(),
                 _buildEducationSection(user),
                 _buildExperienceSection(user),
                 _buildSkillsSection(user),
@@ -163,6 +173,43 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             SizedBox(height: 8),
             Text(content),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddressSection() {
+    if (address == null || address!.isEmpty) {
+      return _buildSection('Address', 'No address available');
+    }
+
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Address',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            ...address!.map((addr) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        "${addr.street}, ${addr.city}, ${addr.state}, ${addr.country}, ${addr.postalCode}"),
+                    if (addr.additionalInfo != null)
+                      Text("Additional Info: ${addr.additionalInfo}",
+                          style: TextStyle(color: Colors.grey)),
+                    Divider(),
+                  ],
+                )),
           ],
         ),
       ),
