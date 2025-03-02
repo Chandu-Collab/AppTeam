@@ -4,8 +4,74 @@ import 'package:taurusai/screens/login_screen.dart';
 import 'package:taurusai/screens/otp_verification_screen.dart';
 import 'package:taurusai/screens/user_details_form.dart';
 import 'package:taurusai/services/auth_service.dart';
+import 'package:taurusai/widgets/button_widget.dart';
+
+/// A reusable button widget that supports a loading state and an optional icon.
+class ReusableButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final String text;
+  final bool isLoading;
+  final Color backgroundColor;
+  final Color textColor;
+  final Widget? icon;
+
+  const ReusableButton({
+    Key? key,
+    required this.onPressed,
+    required this.text,
+    this.isLoading = false,
+    this.backgroundColor = Colors.orange,
+    this.textColor = Colors.white,
+    this.icon,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: textColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        minimumSize: const Size(double.infinity, 50),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+      ),
+      onPressed: onPressed,
+      child: isLoading
+          ? CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(textColor),
+              strokeWidth: 2,
+            )
+          : icon != null
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    icon!,
+                    const SizedBox(width: 8),
+                    Text(
+                      text,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  text,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: textColor,
+                  ),
+                ),
+    );
+  }
+}
 
 class SignupScreen extends StatefulWidget {
+  const SignupScreen({Key? key}) : super(key: key);
+  
   @override
   _SignupScreenState createState() => _SignupScreenState();
 }
@@ -17,10 +83,13 @@ class _SignupScreenState extends State<SignupScreen> {
   String password = '';
   String confirmPassword = '';
   String phoneNumber = '';
-  bool isEmailLoading = false;   // Separate loading state for email/phone sign up
-  bool isGoogleLoading = false;  // Separate loading state for Google sign up
+  bool isEmailLoading = false;   // Loading state for email/phone sign up
+  bool isGoogleLoading = false;    // Loading state for Google sign up
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
+  
+  // State variable for the checkbox.
+  bool isTermsAccepted = false;
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -28,13 +97,29 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
+  // Function to show a dialog if terms are not accepted.
+  void _showTermsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Terms and Conditions"),
+          content: const Text("Please check the terms and conditions of Taurusai."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Okay"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Custom button colors
-    
-    Color signupButtonTextColor = Colors.purple; // For Sign Up button text
-    Color googleButtonTextColor = Colors.purple; // For Sign Up with Google button text
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -45,42 +130,46 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // App name "Figma" at top left
+                // "Taurusai" text with a logo aligned to the left.
                 const Text(
-                  'Figma',
+                  'Taurusai',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.blue,
                   ),
                 ),
-                const SizedBox(height: 40),
-                // "Ready to join us, User!" centered
-                const Center(
-                  child: Text(
-                    'Ready to join us, User!',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Image.asset(
+                    'images/hkbk_logo.png', // Replace with your logo asset path.
+                    height: 50,
                   ),
+                ),
+                const SizedBox(height: 40),
+                // "Ready to join us, User!" text aligned to the left.
+                const Text(
+                  'Ready to join us, User!',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.left,
                 ),
                 const SizedBox(height: 20),
-                // Subtitle text centered
-                const Center(
-                  child: Text(
-                    'Looking for an amzaing oppurtunity to start your carrer?,We are happy to see you here!,Welcome to our family.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                    ),
-                    textAlign: TextAlign.center,
+                // Subtitle text aligned to the left.
+                const Text(
+                  'Step into Success: “Experience a smarter way to search for jobs and shape your career."',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
                   ),
+                  textAlign: TextAlign.left,
                 ),
                 const SizedBox(height: 40),
-                // Email or Phone input field in decorated box
+                // Email or Phone input field.
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: Colors.grey[200],
@@ -89,9 +178,14 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: TextFormField(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Email or Phone',
                         border: InputBorder.none,
+                        prefixIcon: Icon(
+                          email.contains('@')
+                              ? Icons.email
+                              : (phoneNumber.isNotEmpty ? Icons.phone : Icons.email),
+                        ),
                       ),
                       onChanged: (value) {
                         setState(() {
@@ -104,16 +198,15 @@ class _SignupScreenState extends State<SignupScreen> {
                           }
                         });
                       },
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Enter email or phone'
-                          : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Enter email or phone' : null,
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Password and Confirm Password fields (displayed for email sign up)
+                // Password and Confirm Password fields (for email sign up).
                 if (email.isNotEmpty) ...[
-                  // Password Field
+                  // Password Field with an icon.
                   DecoratedBox(
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
@@ -125,10 +218,11 @@ class _SignupScreenState extends State<SignupScreen> {
                         decoration: InputDecoration(
                           labelText: 'Password',
                           border: InputBorder.none,
+                          prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
-                            icon: Icon(isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off),
+                            icon: Icon(
+                              isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                            ),
                             onPressed: () {
                               setState(() {
                                 isPasswordVisible = !isPasswordVisible;
@@ -137,8 +231,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                         obscureText: !isPasswordVisible,
-                        onChanged: (value) =>
-                            setState(() => password = value),
+                        onChanged: (value) => setState(() => password = value),
                         validator: (value) {
                           if (value == null || value.length < 6) {
                             return 'Password must be at least 6 characters';
@@ -149,7 +242,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Confirm Password Field
+                  // Confirm Password Field with an icon.
                   DecoratedBox(
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
@@ -161,21 +254,20 @@ class _SignupScreenState extends State<SignupScreen> {
                         decoration: InputDecoration(
                           labelText: 'Confirm Password',
                           border: InputBorder.none,
+                          prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
-                            icon: Icon(isConfirmPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off),
+                            icon: Icon(
+                              isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                            ),
                             onPressed: () {
                               setState(() {
-                                isConfirmPasswordVisible =
-                                    !isConfirmPasswordVisible;
+                                isConfirmPasswordVisible = !isConfirmPasswordVisible;
                               });
                             },
                           ),
                         ),
                         obscureText: !isConfirmPasswordVisible,
-                        onChanged: (value) =>
-                            setState(() => confirmPassword = value),
+                        onChanged: (value) => setState(() => confirmPassword = value),
                         validator: (value) {
                           if (value != password) {
                             return 'Passwords do not match';
@@ -187,146 +279,134 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 20),
                 ],
-                // Sign Up Elevated Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: signupButtonTextColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    onPressed: () async {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        setState(() => isEmailLoading = true);
-                        try {
-                          User? user;
-                          if (email.isNotEmpty) {
-                            user = await _auth.registerWithEmailAndPassword(
-                                email, password);
-                          } else if (phoneNumber.isNotEmpty) {
-                            await _auth.verifyPhoneNumber(
-                              phoneNumber,
-                              (verificationId) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        OTPVerificationScreen(
-                                      verificationId: verificationId,
-                                      phoneNumber: phoneNumber,
-                                      isSignUp: true,
-                                    ),
-                                  ),
-                                );
-                              }, 
-                              // onError: (error) {  },
-                            );
-                            setState(() => isEmailLoading = false);
-                            return;
-                          }
-                          if (user != null) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    UserDetailsForm(user: user!),
-                              ),
-                            );
-                          } else {
-                            _showErrorSnackBar(
-                                'Sign up failed. Please try again.');
-                          }
-                        } catch (e) {
-                          _showErrorSnackBar('Error: ${e.toString()}');
-                        }
-                        setState(() => isEmailLoading = false);
+                // Regular Sign Up button.
+                ReusableButton(
+                  onPressed: () async {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      // Check if terms have been accepted.
+                      if (!isTermsAccepted) {
+                        _showTermsDialog();
+                        return;
                       }
-                    },
-                    child: isEmailLoading
-                        ? CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                signupButtonTextColor),
-                          )
-                        : const Text('Sign Up'),
-                  ),
+                      setState(() => isEmailLoading = true);
+                      try {
+                        User? user;
+                        if (email.isNotEmpty) {
+                          user = await _auth.registerWithEmailAndPassword(email, password);
+                        } else if (phoneNumber.isNotEmpty) {
+                          await _auth.verifyPhoneNumber(
+                            phoneNumber,
+                            (verificationId) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OTPVerificationScreen(
+                                    verificationId: verificationId,
+                                    phoneNumber: phoneNumber,
+                                    isSignUp: true,
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                          setState(() => isEmailLoading = false);
+                          return;
+                        }
+                        if (user != null) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UserDetailsForm(user: user!),
+                            ),
+                          );
+                        } else {
+                          _showErrorSnackBar('Sign up failed. Please try again.');
+                        }
+                      } catch (e) {
+                        _showErrorSnackBar('Error: ${e.toString()}');
+                      }
+                      setState(() => isEmailLoading = false);
+                    }
+                  },
+                  text: 'Sign Up',
+                  isLoading: isEmailLoading,
+                  backgroundColor: Colors.orange,
+                  textColor: Colors.white,
                 ),
                 const SizedBox(height: 20),
-                // OR divider
+                // OR divider.
                 Row(
                   children: [
-                    const Expanded(
-                      child: Divider(
-                        color: Colors.grey,
-                        thickness: 1,
-                      ),
-                    ),
+                    const Expanded(child: Divider(color: Colors.grey, thickness: 1)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text(
                         'OR',
                         style: TextStyle(color: Colors.grey),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                    const Expanded(
-                      child: Divider(
-                        color: Colors.black,
-                        thickness: 1,
-                      ),
-                    ),
+                    const Expanded(child: Divider(color: Colors.grey, thickness: 1)),
                   ],
                 ),
                 const SizedBox(height: 20),
-                // Sign Up with Google Elevated Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: googleButtonTextColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    onPressed: () async {
-                      setState(() => isGoogleLoading = true);
-                      try {
-                        User? user = await _auth.signInWithGoogle();
-                        if (user != null) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  UserDetailsForm(user: user),
-                            ),
-                          );
-                        } else {
-                          _showErrorSnackBar(
-                              'Google sign up failed. Please try again.');
-                        }
-                      } catch (e) {
-                        _showErrorSnackBar('Error: ${e.toString()}');
+                // Google Sign Up button with a custom Google icon.
+                ReusableButton(
+                  onPressed: () async {
+                    setState(() => isGoogleLoading = true);
+                    try {
+                      User? user = await _auth.signInWithGoogle();
+                      if (user != null) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserDetailsForm(user: user),
+                          ),
+                        );
+                      } else {
+                        _showErrorSnackBar('Google sign up failed. Please try again.');
                       }
-                      setState(() => isGoogleLoading = false);
-                    },
-                    child: isGoogleLoading
-                        ? CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                googleButtonTextColor),
-                          )
-                        : const Text('Sign Up with Google'),
+                    } catch (e) {
+                      _showErrorSnackBar('Error: ${e.toString()}');
+                    }
+                    setState(() => isGoogleLoading = false);
+                  },
+                  text: 'Sign Up with Google',
+                  isLoading: isGoogleLoading,
+                  backgroundColor: Colors.orange,
+                  textColor: Colors.white,
+                  // Replace the default icon with a custom asset image.
+                  icon: Image.asset(
+                    'images/icons8_google_48.png', // Replace with your asset path.
+                    height: 24,
+                    width: 24,
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Terms and Conditions text
-                const Center(
-                  child: Text(
-                    'By clicking register, you agree to the Terms and Conditions & Privacy Policy of Figma',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.center,
+                // Terms and Conditions text with checkbox, centered.
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Checkbox(
+                        value: isTermsAccepted,
+                        onChanged: (value) {
+                          setState(() {
+                            isTermsAccepted = value ?? false;
+                          });
+                        },
+                      ),
+                      Flexible(
+                        child: Text(
+                          'By clicking register, you agree to the Terms and Conditions & Privacy Policy of Taurusai',
+                          style: TextStyle(color: Colors.black, fontSize: 12),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Existing User? Sign in text
+                // Existing User? Sign in text, centered.
                 Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -339,9 +419,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => LoginScreen(),
-                            ),
+                            MaterialPageRoute(builder: (context) => LoginScreen()),
                           );
                         },
                         child: const Text('Sign in'),

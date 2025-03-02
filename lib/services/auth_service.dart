@@ -154,4 +154,6 @@ class AuthService {
     }
     return null;
   }
+
+  sendOtp(String input) {}
 }
