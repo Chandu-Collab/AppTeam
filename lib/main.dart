@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:taurusai/models/user.dart';
 import 'package:taurusai/screens/home_page.dart';
+import 'package:taurusai/screens/introduction_screen.dart';
 import 'package:taurusai/screens/login_screen.dart';
 import 'package:taurusai/services/auth_service.dart';
 
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: initialUser != null ? HomePage(user: initialUser!) : LoginScreen(),
+      home: initialUser != null ? HomePage(user: initialUser!) : IntroScreen(),
     );
   }
 }
