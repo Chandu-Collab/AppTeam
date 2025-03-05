@@ -3,7 +3,31 @@ import 'package:flutter/material.dart';
 import 'package:taurusai/widgets/input_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
+import 'package:firebase_auth/firebase_auth.dart';
+
+// The provided date field widget.
+Widget buildDateField(
+  String label,
+  TextEditingController controller,
+  VoidCallback onTap, {
+  String? Function(String?)? validator,
+}) {
+  return SizedBox(
+    width: 300,
+    child: TextFormField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        suffixIcon: Icon(Icons.calendar_today),
+        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      ),
+      validator: validator,
+      onTap: onTap,
+    ),
+  );
+}
 
 class AddPositionScreen extends StatefulWidget {
   /// [initialData] holds the stored fields for editing.
@@ -25,8 +49,14 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
   final TextEditingController locationController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
+  // Controllers for date fields.
+  final TextEditingController startDateController = TextEditingController();
+  final TextEditingController endDateController = TextEditingController();
+
+  DateTime? startDate;
+  DateTime? endDate;
+
   // Dropdown variables.
-  // Removed default values so that user must select manually.
   String? employmentType;
   final List<String> employmentTypes = [
     'Full-time',
@@ -39,30 +69,6 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
 
   // Checkbox for current role.
   bool currentlyWorking = false;
-
-  // Start date dropdowns.
-  String? startMonth;
-  String? startYear;
-  final List<String> months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
-  late final List<String> years = List.generate(
-      30, (index) => (DateTime.now().year - index).toString());
-
-  // End date dropdowns.
-  String? endMonth;
-  String? endYear;
 
   // Location type dropdown.
   String? locationType;
@@ -96,11 +102,28 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
       descriptionController.text = widget.initialData!['description'] ?? "";
       employmentType = widget.initialData!['employmentType'];
       currentlyWorking = widget.initialData!['currentlyWorking'] ?? false;
-      startMonth = widget.initialData!['startMonth'];
-      startYear = widget.initialData!['startYear'];
-      if (!currentlyWorking) {
-        endMonth = widget.initialData!['endMonth'];
-        endYear = widget.initialData!['endYear'];
+      
+      // If startMonth and startYear exist, construct a start date.
+      if (widget.initialData!['startMonth'] != null &&
+          widget.initialData!['startYear'] != null) {
+        // Assuming day = 1 for simplicity.
+        startDate = DateTime(
+          int.parse(widget.initialData!['startYear'].toString()),
+          _monthNumber(widget.initialData!['startMonth'].toString()),
+        );
+        startDateController.text =
+            "${widget.initialData!['startMonth']} ${widget.initialData!['startYear']}";
+      }
+      
+      if (!currentlyWorking &&
+          widget.initialData!['endMonth'] != null &&
+          widget.initialData!['endYear'] != null) {
+        endDate = DateTime(
+          int.parse(widget.initialData!['endYear'].toString()),
+          _monthNumber(widget.initialData!['endMonth'].toString()),
+        );
+        endDateController.text =
+            "${widget.initialData!['endMonth']} ${widget.initialData!['endYear']}";
       }
       locationType = widget.initialData!['locationType'];
       jobSource = widget.initialData!['jobSource'];
@@ -108,6 +131,89 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
       if (mediaPaths != null) {
         mediaFiles = mediaPaths.map((e) => File(e.toString())).toList();
       }
+    }
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    companyController.dispose();
+    locationController.dispose();
+    descriptionController.dispose();
+    startDateController.dispose();
+    endDateController.dispose();
+    super.dispose();
+  }
+
+  /// Helper: Convert month name to month number.
+  int _monthNumber(String monthName) {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return monthNames.indexOf(monthName) + 1;
+  }
+
+  /// Helper: Convert month number to month name.
+  String _monthName(int month) {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return monthNames[month - 1];
+  }
+
+  /// Opens the date picker for start date.
+  Future<void> _pickStartDate() async {
+    DateTime initial = startDate ?? DateTime.now();
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        startDate = picked;
+        startDateController.text = "${_monthName(picked.month)} ${picked.year}";
+      });
+    }
+  }
+
+  /// Opens the date picker for end date.
+  Future<void> _pickEndDate() async {
+    DateTime initial = endDate ?? DateTime.now();
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        endDate = picked;
+        endDateController.text = "${_monthName(picked.month)} ${picked.year}";
+      });
     }
   }
 
@@ -139,10 +245,16 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
       'employmentType': employmentType,
       'company': companyController.text,
       'currentlyWorking': currentlyWorking,
-      'startMonth': startMonth,
-      'startYear': startYear,
-      'endMonth': currentlyWorking ? null : endMonth,
-      'endYear': currentlyWorking ? null : endYear,
+      // Save start date details if available.
+      'startMonth': startDate != null ? _monthName(startDate!.month) : null,
+      'startYear': startDate != null ? startDate!.year.toString() : null,
+      // Save end date details only if not currently working.
+      'endMonth': (!currentlyWorking && endDate != null)
+          ? _monthName(endDate!.month)
+          : null,
+      'endYear': (!currentlyWorking && endDate != null)
+          ? endDate!.year.toString()
+          : null,
       'location': locationController.text,
       'locationType': locationType,
       'description': descriptionController.text,
@@ -161,7 +273,7 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
             .collection(userId)
             .doc('experiences')
             .collection('positions')
-            .doc(widget.experienceId) // Removed quotes here.
+            .doc(widget.experienceId)
             .update(data);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Experience updated successfully')),
@@ -255,122 +367,24 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
               ],
             ),
             SizedBox(height: 16),
-            // Start Date: Month and Year
+            // Start Date using buildDateField.
             const Text(
               'Start Date',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Month',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    ),
-                    value: startMonth,
-                    hint: const Text('Select Month'),
-                    items: months
-                        .map((m) =>
-                            DropdownMenuItem(child: Text(m), value: m))
-                        .toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        startMonth = val;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Year',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    ),
-                    value: startYear,
-                    hint: const Text('Select Year'),
-                    items: years
-                        .map((y) =>
-                            DropdownMenuItem(child: Text(y), value: y))
-                        .toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        startYear = val;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // End Date: Month and Year (disabled if currently working)
-            const Text(
-              'End Date',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Month',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    ),
-                    value: endMonth,
-                    hint: const Text('Select Month'),
-                    items: months
-                        .map((m) =>
-                            DropdownMenuItem(child: Text(m), value: m))
-                        .toList(),
-                    onChanged: currentlyWorking
-                        ? null
-                        : (val) {
-                            setState(() {
-                              endMonth = val;
-                            });
-                          },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Year',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    ),
-                    value: endYear,
-                    hint: const Text('Select Year'),
-                    items: years
-                        .map((y) =>
-                            DropdownMenuItem(child: Text(y), value: y))
-                        .toList(),
-                    onChanged: currentlyWorking
-                        ? null
-                        : (val) {
-                            setState(() {
-                              endYear = val;
-                            });
-                          },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            buildDateField("Select Start Date", startDateController, _pickStartDate),
+            SizedBox(height: 16),
+            // End Date using buildDateField (only if not currently working).
+            if (!currentlyWorking) ...[
+              const Text(
+                'End Date',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              buildDateField("Select End Date", endDateController, _pickEndDate),
+              SizedBox(height: 16),
+            ],
             // Location
             buildTextField(
               'Location',
@@ -378,7 +392,7 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
               (value) => value!.isEmpty ? 'Required' : null,
               (value) {},
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // Location Type Dropdown
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
@@ -402,7 +416,7 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // Description
             buildTextField(
               'Description',
@@ -410,7 +424,7 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
               null,
               (value) {},
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // Job Source Dropdown
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
@@ -434,7 +448,7 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // Media Section.
             const Text(
               'Media',
@@ -455,7 +469,7 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             if (mediaFiles.isNotEmpty)
               ListView.builder(
                 shrinkWrap: true,
@@ -468,7 +482,7 @@ class _AddPositionScreenState extends State<AddPositionScreen> {
                   );
                 },
               ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             // Save Button using custom buildButton widget.
             Center(
               child: buildButton(save, text: 'Save'),

@@ -3,7 +3,60 @@ import 'package:flutter/material.dart';
 import 'package:taurusai/widgets/input_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+import 'package:firebase_auth/firebase_auth.dart';
+
+/// Custom dropdown widget updated to accept nullable value.
+Widget buildDropdown<T>({
+  required String label,
+  T? value,
+  required List<T> items,
+  required void Function(T?) onChanged,
+  String? Function(T?)? validator,
+}) {
+  return SizedBox(
+    width: 300,
+    child: DropdownButtonFormField<T>(
+      value: value,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      ),
+      items: items.map((T item) {
+        return DropdownMenuItem<T>(
+          value: item,
+          child: Text(item.toString()),
+        );
+      }).toList(),
+      onChanged: onChanged,
+      validator: validator,
+    ),
+  );
+}
+
+/// Provided date field widget.
+Widget buildDateField(
+  String label,
+  TextEditingController controller,
+  VoidCallback onTap, {
+  String? Function(String?)? validator,
+}) {
+  return SizedBox(
+    width: 300,
+    child: TextFormField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        suffixIcon: Icon(Icons.calendar_today),
+        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      ),
+      validator: validator,
+      onTap: onTap,
+    ),
+  );
+}
 
 class AddCareerBreakScreen extends StatefulWidget {
   /// [initialData] holds the stored fields for editing.
@@ -21,6 +74,12 @@ class AddCareerBreakScreen extends StatefulWidget {
 class _AddCareerBreakScreenState extends State<AddCareerBreakScreen> {
   final TextEditingController locationController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+
+  // Date controllers and variables.
+  final TextEditingController startDateController = TextEditingController();
+  final TextEditingController endDateController = TextEditingController();
+  DateTime? startDate;
+  DateTime? endDate;
 
   // Career break type dropdown.
   String? careerBreakType;
@@ -42,30 +101,6 @@ class _AddCareerBreakScreenState extends State<AddCareerBreakScreen> {
   // Checkbox for currently on break.
   bool currentlyOnBreak = false;
 
-  // Start Date dropdowns.
-  String? startMonth;
-  String? startYear;
-  final List<String> months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
-  late final List<String> years = List.generate(
-      30, (index) => (DateTime.now().year - index).toString());
-
-  // End Date dropdowns.
-  String? endMonth;
-  String? endYear;
-
   // Media files.
   List<File> mediaFiles = [];
 
@@ -77,16 +112,112 @@ class _AddCareerBreakScreenState extends State<AddCareerBreakScreen> {
       locationController.text = widget.initialData!['location'] ?? "";
       descriptionController.text = widget.initialData!['description'] ?? "";
       currentlyOnBreak = widget.initialData!['currentlyOnBreak'] ?? false;
-      startMonth = widget.initialData!['startMonth'];
-      startYear = widget.initialData!['startYear'];
-      if (!currentlyOnBreak) {
-        endMonth = widget.initialData!['endMonth'];
-        endYear = widget.initialData!['endYear'];
+      // Initialize start date if data exists.
+      if (widget.initialData!['startMonth'] != null &&
+          widget.initialData!['startYear'] != null) {
+        startDate = DateTime(
+          int.parse(widget.initialData!['startYear'].toString()),
+          _monthNumber(widget.initialData!['startMonth'].toString()),
+        );
+        startDateController.text =
+            "${widget.initialData!['startMonth']} ${widget.initialData!['startYear']}";
+      }
+      // Initialize end date if not currently on break.
+      if (!currentlyOnBreak &&
+          widget.initialData!['endMonth'] != null &&
+          widget.initialData!['endYear'] != null) {
+        endDate = DateTime(
+          int.parse(widget.initialData!['endYear'].toString()),
+          _monthNumber(widget.initialData!['endMonth'].toString()),
+        );
+        endDateController.text =
+            "${widget.initialData!['endMonth']} ${widget.initialData!['endYear']}";
       }
       List<dynamic>? mediaPaths = widget.initialData!['mediaFiles'];
       if (mediaPaths != null) {
         mediaFiles = mediaPaths.map((e) => File(e.toString())).toList();
       }
+    }
+  }
+
+  @override
+  void dispose() {
+    locationController.dispose();
+    descriptionController.dispose();
+    startDateController.dispose();
+    endDateController.dispose();
+    super.dispose();
+  }
+
+  /// Helper: Convert month name to month number.
+  int _monthNumber(String monthName) {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return monthNames.indexOf(monthName) + 1;
+  }
+
+  /// Helper: Convert month number to month name.
+  String _monthName(int month) {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return monthNames[month - 1];
+  }
+
+  /// Opens the date picker for the start date.
+  Future<void> _pickStartDate() async {
+    DateTime initial = startDate ?? DateTime.now();
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        startDate = picked;
+        startDateController.text = "${_monthName(picked.month)} ${picked.year}";
+      });
+    }
+  }
+
+  /// Opens the date picker for the end date.
+  Future<void> _pickEndDate() async {
+    DateTime initial = endDate ?? DateTime.now();
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        endDate = picked;
+        endDateController.text = "${_monthName(picked.month)} ${picked.year}";
+      });
     }
   }
 
@@ -117,10 +248,16 @@ class _AddCareerBreakScreenState extends State<AddCareerBreakScreen> {
       'careerBreakType': careerBreakType,
       'location': locationController.text,
       'currentlyOnBreak': currentlyOnBreak,
-      'startMonth': startMonth,
-      'startYear': startYear,
-      'endMonth': currentlyOnBreak ? null : endMonth,
-      'endYear': currentlyOnBreak ? null : endYear,
+      // Save start date details.
+      'startMonth': startDate != null ? _monthName(startDate!.month) : null,
+      'startYear': startDate != null ? startDate!.year.toString() : null,
+      // Save end date details only if not currently on break.
+      'endMonth': (!currentlyOnBreak && endDate != null)
+          ? _monthName(endDate!.month)
+          : null,
+      'endYear': (!currentlyOnBreak && endDate != null)
+          ? endDate!.year.toString()
+          : null,
       'description': descriptionController.text,
       'mediaFiles': mediaFiles.map((f) => f.path).toList(),
       'type': 'career_break',
@@ -174,28 +311,17 @@ class _AddCareerBreakScreenState extends State<AddCareerBreakScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Career Break Type Dropdown.
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                labelText: 'Type',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              ),
+            // Career Break Type Dropdown using buildDropdown.
+            buildDropdown<String>(
+              label: 'Type',
               value: careerBreakType,
-              hint: const Text('Select Career Break Type'),
-              items: careerBreakTypes
-                  .map((type) => DropdownMenuItem(
-                        child: Text(type),
-                        value: type,
-                      ))
-                  .toList(),
+              items: careerBreakTypes,
               onChanged: (val) {
                 setState(() {
                   careerBreakType = val;
                 });
               },
+              validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 16),
             // Location.
@@ -221,122 +347,24 @@ class _AddCareerBreakScreenState extends State<AddCareerBreakScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            // Start Date.
+            // Start Date using buildDateField.
             const Text(
               'Start Date',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Month',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
-                    ),
-                    value: startMonth,
-                    hint: const Text('Select Month'),
-                    items: months
-                        .map((m) =>
-                            DropdownMenuItem(child: Text(m), value: m))
-                        .toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        startMonth = val;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Year',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
-                    ),
-                    value: startYear,
-                    hint: const Text('Select Year'),
-                    items: years
-                        .map((y) =>
-                            DropdownMenuItem(child: Text(y), value: y))
-                        .toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        startYear = val;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
+            buildDateField("Select Start Date", startDateController, _pickStartDate),
             const SizedBox(height: 16),
-            // End Date.
-            const Text(
-              'End Date',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Month',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
-                    ),
-                    value: endMonth,
-                    hint: const Text('Select Month'),
-                    items: months
-                        .map((m) =>
-                            DropdownMenuItem(child: Text(m), value: m))
-                        .toList(),
-                    onChanged: currentlyOnBreak
-                        ? null
-                        : (val) {
-                            setState(() {
-                              endMonth = val;
-                            });
-                          },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Year',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
-                    ),
-                    value: endYear,
-                    hint: const Text('Select Year'),
-                    items: years
-                        .map((y) =>
-                            DropdownMenuItem(child: Text(y), value: y))
-                        .toList(),
-                    onChanged: currentlyOnBreak
-                        ? null
-                        : (val) {
-                            setState(() {
-                              endYear = val;
-                            });
-                          },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            // End Date using buildDateField (only if not currently on break).
+            if (!currentlyOnBreak) ...[
+              const Text(
+                'End Date',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              buildDateField("Select End Date", endDateController, _pickEndDate),
+              const SizedBox(height: 16),
+            ],
             // Description.
             buildTextField(
               'Description',
